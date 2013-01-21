@@ -1,11 +1,18 @@
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+
 class MPscanner {
+	BufferedReader reader;
 	
 	MPscanner() {
 		
 	}
 
-    public void openFile() {
-    	
+    public boolean openFile(String filename) throws FileNotFoundException {
+    	FileReader fr = new FileReader(filename);
+        reader = new BufferedReader(fr);
+    	return true;
     }
     
     public void getToken() {
