@@ -7,8 +7,10 @@ class MPscanner {
 	private BufferedReader reader;
 	private int lineNumber = 1;
 	private int columnNumber = 1;
+	private int tokenStartColumn;
 	private StringBuilder lexeme = new StringBuilder();
 	private String markedLexeme = "";
+	private int markedLine, markedColumn;
 	private Token token;
 	
 	MPscanner() {
@@ -23,6 +25,7 @@ class MPscanner {
     
     public Token getToken() throws IOException {
     	lexeme = new StringBuilder();
+    	tokenStartColumn = columnNumber;
     	char ch = getNextChar();
 
     	if (ch == (char)4) {
@@ -94,16 +97,57 @@ class MPscanner {
     	else if (ch == '*') {
     		return returnToken(Token.TokenName.MP_TIMES);
     	}
-    	else if(ch >= 'a' && ch <= 'z' ||
-    			ch >= 'A' && ch <= 'Z') {
-    		return null;
+    	else if (ch == '_') {
+    		markBuffer();
+    		ch = getNextChar();
+        	if (isLetter(ch) || isNumber(ch)) {
+       			return findIdentifier();
+        	}
+        	else {
+        		resetBuffer();
+        		return returnToken(Token.TokenName.MP_ERROR);
+        	}
     	}
-    	else if(ch >= '0' && ch <= '9') {
+    	else if (isLetter(ch)) {
+    		return findIdentifier();
+    	}
+    	else if (isNumber(ch)) {
     		return null;
     	}
     	else {
     		return returnToken(Token.TokenName.MP_ERROR);
     	}
+    }
+    
+    private Token findIdentifier() throws IOException {
+    	markBuffer();
+    	char ch = getNextChar();
+    	if (ch == '_') {
+    		ch = getNextChar();
+    		if (isLetter(ch) || isNumber(ch)) {
+    			return findIdentifier();
+    		}
+    	}
+    	else if (isLetter(ch) || isNumber(ch)) {
+    		return findIdentifier();
+    	}
+    	resetBuffer();
+    	return returnToken(Token.TokenName.MP_IDENTIFIER);
+    }
+    
+    private boolean isLetter(char c) {
+    	if(c >= 'a' && c <= 'z' ||
+    			c >= 'A' && c <= 'Z') {
+    		return true;
+    	}
+    	return false;
+    }
+    
+    private boolean isNumber(char c) {
+    	if(c >= '0' && c <= '9') {
+    		return true;
+    	}
+    	return false;
     }
     
     private char getNextChar() throws IOException {
@@ -123,6 +167,8 @@ class MPscanner {
     
     private void markBuffer() {
     	markedLexeme = lexeme.toString();
+    	markedLine = lineNumber;
+    	markedColumn = columnNumber;
     	try {
 			reader.mark(10);
 		} catch (IOException e) {
@@ -133,6 +179,8 @@ class MPscanner {
     
     private void resetBuffer() {
     	lexeme = new StringBuilder(markedLexeme);
+    	lineNumber = markedLine;
+    	columnNumber = markedColumn;
     	try {
 			reader.reset();
 		} catch (IOException e) {
@@ -142,7 +190,7 @@ class MPscanner {
     }
     
     private Token returnToken(Token.TokenName tokenName) {
-    	token = new Token(tokenName, lineNumber, columnNumber,
+    	token = new Token(tokenName, lineNumber, tokenStartColumn,
     			lexeme.toString());
     	return token;
     }
