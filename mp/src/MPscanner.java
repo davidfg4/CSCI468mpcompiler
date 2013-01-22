@@ -8,6 +8,7 @@ class MPscanner {
 	private int lineNumber = 1;
 	private int columnNumber = 1;
 	private StringBuilder lexeme = new StringBuilder();
+	private String markedLexeme = "";
 	private Token token;
 	
 	MPscanner() {
@@ -55,6 +56,20 @@ class MPscanner {
         		return returnToken(Token.TokenName.MP_GTHAN);
     		}
     	}
+    	else if (ch == '<') {
+    		markBuffer();
+    		ch = getNextChar();
+    		if (ch == '=') {
+    			return returnToken(Token.TokenName.MP_LEQUAL);
+    		}
+    		else if ( ch == '>') {
+    			return returnToken(Token.TokenName.MP_NEQUAL);
+    		}
+    		else {
+    			resetBuffer();
+    			return returnToken(Token.TokenName.MP_LTHAN);
+    		}
+    	}
     	else if(ch >= 'a' && ch <= 'z' ||
     			ch >= 'A' && ch <= 'Z') {
     		return null;
@@ -84,6 +99,7 @@ class MPscanner {
     }
     
     private void markBuffer() {
+    	markedLexeme = lexeme.toString();
     	try {
 			reader.mark(10);
 		} catch (IOException e) {
@@ -93,6 +109,7 @@ class MPscanner {
     }
     
     private void resetBuffer() {
+    	lexeme = new StringBuilder(markedLexeme);
     	try {
 			reader.reset();
 		} catch (IOException e) {
