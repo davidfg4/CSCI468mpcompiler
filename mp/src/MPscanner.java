@@ -22,10 +22,14 @@ class MPscanner {
     }
     
     public Token getToken() throws IOException {
+    	lexeme = new StringBuilder();
     	char ch = getNextChar();
 
     	if (ch == (char)4) {
     		return returnToken(Token.TokenName.MP_EOF);
+    	}
+    	else if (ch == '\n' || ch == ' ') {
+    		return getToken();
     	}
     	else if (ch == '.') {
     		return returnToken(Token.TokenName.MP_PERIOD);
@@ -103,7 +107,6 @@ class MPscanner {
     }
     
     private char getNextChar() throws IOException {
-    	//TODO get rid of whitespace
     	int ch2 = reader.read();
     	if (ch2 == -1) {
     		ch2 = 4;
@@ -141,7 +144,6 @@ class MPscanner {
     private Token returnToken(Token.TokenName tokenName) {
     	token = new Token(tokenName, lineNumber, columnNumber,
     			lexeme.toString());
-    	lexeme = new StringBuilder();
     	return token;
     }
     
