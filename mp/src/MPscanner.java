@@ -70,6 +70,26 @@ class MPscanner {
     			return returnToken(Token.TokenName.MP_LTHAN);
     		}
     	}
+    	else if (ch == ':') {
+    		markBuffer();
+    		ch = getNextChar();
+    		if (ch == '=') {
+    			return returnToken(Token.TokenName.MP_ASSIGN);
+    		}
+    		else {
+    			resetBuffer();
+    			return returnToken(Token.TokenName.MP_COLON);
+    		}
+    	}
+    	else if (ch == '+') {
+    		return returnToken(Token.TokenName.MP_PLUS);
+    	}
+    	else if (ch == '-') {
+    		return returnToken(Token.TokenName.MP_MINUS);
+    	}
+    	else if (ch == '*') {
+    		return returnToken(Token.TokenName.MP_TIMES);
+    	}
     	else if(ch >= 'a' && ch <= 'z' ||
     			ch >= 'A' && ch <= 'Z') {
     		return null;
