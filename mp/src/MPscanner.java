@@ -7,7 +7,7 @@ class MPscanner {
 	private BufferedReader reader;
 	private int lineNumber = 1;
 	private int columnNumber = 1;
-	private StringBuilder lexeme;
+	private StringBuilder lexeme = new StringBuilder();
 	private Token token;
 	
 	MPscanner() {
@@ -21,24 +21,59 @@ class MPscanner {
     }
     
     public Token getToken() throws IOException {
-    	Token token = null;
-    	int ch = getNextChar();
-    	
-    	if(ch < 0) {
-    		return new Token(Token.TokenName.MP_EOF, lineNumber, columnNumber, String.valueOf(ch) );
+    	char ch = getNextChar();
+
+    	if (ch == (char)4) {
+    		return returnToken(Token.TokenName.MP_EOF);
     	}
-    	char nextChar = (char) ch;
-    	if(nextChar >= 'a' && nextChar <= 'z' || nextChar >= 'A' && nextChar <= 'Z') {
+    	else if (ch == '.') {
+    		return returnToken(Token.TokenName.MP_PERIOD);
     	}
-    	
-    	else if(nextChar >= '0' && nextChar <= '9') {
+    	else if (ch == ',') {
+    		return returnToken(Token.TokenName.MP_COMMA);
     	}
-    	
-    	return token;
+    	else if (ch == ';') {
+    		return returnToken(Token.TokenName.MP_SCOLON);
+    	}
+    	else if (ch == '(') {
+    		return returnToken(Token.TokenName.MP_LPAREN);
+    	}
+    	else if (ch == ')') {
+    		return returnToken(Token.TokenName.MP_RPAREN);
+    	}
+    	else if (ch == '=') {
+    		return returnToken(Token.TokenName.MP_EQUAL);
+    	}
+    	else if (ch == '>') {
+    		markBuffer();
+    		ch = getNextChar();
+    		if (ch == '=') {
+    			return returnToken(Token.TokenName.MP_GEQUEL);
+    		}
+    		else {
+    			resetBuffer();
+        		return returnToken(Token.TokenName.MP_GTHAN);
+    		}
+    	}
+    	else if(ch >= 'a' && ch <= 'z' ||
+    			ch >= 'A' && ch <= 'Z') {
+    		return null;
+    	}
+    	else if(ch >= '0' && ch <= '9') {
+    		return null;
+    	}
+    	else {
+    		return returnToken(Token.TokenName.MP_ERROR);
+    	}
     }
-    private int getNextChar() throws IOException {
+    
+    private char getNextChar() throws IOException {
     	//TODO get rid of whitespace
-    	int ch = reader.read();
+    	int ch2 = reader.read();
+    	if (ch2 == -1) {
+    		ch2 = 4;
+    	}
+    	char ch = (char) ch2;
     	lexeme.append(ch);
     	columnNumber++;
     	if((char)ch == '\n') {
@@ -48,15 +83,40 @@ class MPscanner {
     	return ch;
     }
     
-    public void getLexeme() {
-    	
+    private void markBuffer() {
+    	try {
+			reader.mark(10);
+		} catch (IOException e) {
+			System.out.println("Error: Failed to mark reader");
+			System.exit(1);
+		}
+    }
+    
+    private void resetBuffer() {
+    	try {
+			reader.reset();
+		} catch (IOException e) {
+			System.out.println("Error: Failed to reset marker");
+			System.exit(1);
+		}
+    }
+    
+    private Token returnToken(Token.TokenName tokenName) {
+    	token = new Token(tokenName, lineNumber, columnNumber,
+    			lexeme.toString());
+    	lexeme = new StringBuilder();
+    	return token;
+    }
+    
+    public String getLexeme() {
+    	return token.getLexeme();
     }
     
     public int getLineNumber() {
-    	return 0;
+    	return token.getLine();
     }
     
     public int getColumnNumber() {
-    	return 0;
+    	return token.getColumn();
     }
 }

@@ -16,7 +16,7 @@ class MP {
 			System.out.println("Error while reading the first char of " + filename);
 			System.exit(1);
 		}
-		while(token != null) {
+		while(token != null && token.getToken() != Token.TokenName.MP_EOF) {
 			System.out.println(pad(token.getToken().name(), 14) + " " +
 					pad("" + token.getLine(), 4) + " " +
 					pad("" + token.getColumn(), 3) + " " +
