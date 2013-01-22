@@ -9,6 +9,7 @@ class MP {
 			System.out.println("Error: File " + filename + " not found");
 			System.exit(1);
 		}
+		
 	}
 	
 	public static void main(String args[]) {
