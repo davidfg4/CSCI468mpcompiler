@@ -202,14 +202,29 @@ class MPscanner {
     }
     
     public String getLexeme() {
-    	return token.getLexeme();
+    	if (token == null) {
+    		return "";
+    	}
+    	else {
+    		return token.getLexeme();
+    	}
     }
     
     public int getLineNumber() {
-    	return token.getLine();
+    	if (token == null) {
+    		return 0;
+    	}
+    	else {
+    		return token.getLine();
+    	}
     }
     
     public int getColumnNumber() {
-    	return token.getColumn();
+    	if (token == null) {
+    		return 0;
+    	}
+    	else {
+    		return token.getColumn();
+    	}
     }
 }
