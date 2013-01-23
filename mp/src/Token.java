@@ -40,7 +40,7 @@ public class Token {
 		tempMap.put("mod", TokenName.MP_MOD);
 		tempMap.put("not", TokenName.MP_NOT);
 		tempMap.put("or", TokenName.MP_OR);
-		tempMap.put("proceture", TokenName.MP_PROCEDURE);
+		tempMap.put("procedure", TokenName.MP_PROCEDURE);
 		tempMap.put("program", TokenName.MP_PROGRAM);
 		tempMap.put("read", TokenName.MP_READ);
 		tempMap.put("repeat", TokenName.MP_REPEAT);
