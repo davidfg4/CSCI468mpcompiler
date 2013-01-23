@@ -132,7 +132,13 @@ class MPscanner {
     		return findIdentifier();
     	}
     	resetBuffer();
-    	return returnToken(Token.TokenName.MP_IDENTIFIER);
+    	Token.TokenName reservedWord = Token.getReservedWord(lexeme.toString());
+    	if (reservedWord != null) {
+    		return returnToken(reservedWord);
+    	}
+    	else {
+    		return returnToken(Token.TokenName.MP_IDENTIFIER);
+    	}
     }
     
     private boolean isLetter(char c) {
