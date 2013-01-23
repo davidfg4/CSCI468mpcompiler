@@ -97,6 +97,9 @@ class MPscanner {
 			return findIdentifier();
 		else if (isNumber(ch))
 			return findInteger();
+		else if (ch == '\'') {
+			return findString();
+		}
 		else
 			return returnToken(Token.TokenName.MP_ERROR);
 	}
@@ -177,6 +180,22 @@ class MPscanner {
 			resetBuffer();
 			return returnToken(Token.TokenName.MP_FLOAT);
 		}
+	}
+	
+	private Token findString() throws IOException {
+		char ch = getNextChar();
+		if (ch == '\'') {
+			markBuffer();
+			ch = getNextChar();
+			if (ch == '\'')
+				return findString();
+			else {
+				resetBuffer();
+				return returnToken(Token.TokenName.MP_STRING_LIT);
+			}
+		} else if (ch == (char)4)
+			return returnToken(Token.TokenName.MP_ERROR);
+		return findString();
 	}
 	
 	private boolean isLetter(char c) {
