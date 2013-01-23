@@ -8,7 +8,6 @@ class MP {
 		try {
 			scanner.openFile(filename);
 			token = scanner.getToken();
-
 		} catch (FileNotFoundException e) {
 			System.out.println("Error: File " + filename + " not found");
 			System.exit(1);

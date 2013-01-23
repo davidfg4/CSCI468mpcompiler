@@ -22,7 +22,7 @@ public class Token {
 		MP_RUN_COMMENT, MP_RUN_STRING, MP_ERROR
 	}
 	
-    private static final Map<String, TokenName> ReservedWords;
+	private static final Map<String, TokenName> ReservedWords;
 	static {
 		Map<String, TokenName> tempMap = new HashMap<String, TokenName>();
 		tempMap.put("and", TokenName.MP_AND);
