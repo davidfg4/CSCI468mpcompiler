@@ -2,22 +2,27 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 class MPscanner {
+	private String filename;
 	private BufferedReader reader;
 	private int lineNumber = 1;
 	private int columnNumber = 1;
 	private int tokenStartColumn;
+	private List<String> lines = new ArrayList<String>();
 	private StringBuilder lexeme = new StringBuilder();
 	private String markedLexeme = "";
 	private int markedLine, markedColumn;
 	private Token token;
 	
 	MPscanner() {
-		
+		lines.add(0, "");
 	}
 
 	public boolean openFile(String filename) throws FileNotFoundException {
+		this.filename = filename;
 		FileReader fr = new FileReader(filename);
 		reader = new BufferedReader(fr);
 		return true;
@@ -212,6 +217,11 @@ class MPscanner {
 	}
 	
 	private char getNextChar() throws IOException {
+		if (columnNumber == 1) {
+			reader.mark(512);
+			lines.add(lineNumber, reader.readLine());
+			reader.reset();
+		}
 		int ch2 = reader.read();
 		if (ch2 == -1)
 			ch2 = 4;
@@ -247,6 +257,17 @@ class MPscanner {
 			System.out.println("Error: Failed to reset marker");
 			System.exit(1);
 		}
+	}
+	
+	public void printError(Token t) {
+		System.out.println("  File \"" + filename + "\", line " + t.getLine() + ":");
+		System.out.println("    " + getLine(t.getLine()));
+		System.out.println(String.format("    %1$" + t.getColumn() + "s", "^"));
+		System.out.println("Scanner error at column " + t.getColumn());
+	}
+	
+	private String getLine(int l) {
+		return lines.get(l);
 	}
 	
 	private Token returnToken(Token.TokenName tokenName) {

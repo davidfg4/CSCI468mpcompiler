@@ -16,6 +16,9 @@ class MP {
 			System.exit(1);
 		}
 		while(token != null && token.getToken() != Token.TokenName.MP_EOF) {
+			if (token.getToken() == Token.TokenName.MP_ERROR) {
+				scanner.printError(token);
+			}
 			System.out.println(pad(token.getToken().name(), 14) + " " +
 					pad("" + token.getLine(), 4) + " " +
 					pad("" + token.getColumn(), 3) + " " +
