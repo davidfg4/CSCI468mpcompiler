@@ -138,7 +138,7 @@ class MPscanner {
 				return findFixed();
 			else {
 				resetBuffer();
-				return returnToken(Token.TokenName.MP_INTEGER);
+				return returnToken(Token.TokenName.MP_INTEGER_LIT);
 			}
 		}
 		else if (ch == 'e' || ch == 'E') {
@@ -148,11 +148,11 @@ class MPscanner {
 			if (isNumber(ch))
 				return findFloat();
 			else
-				return returnToken(Token.TokenName.MP_INTEGER);
+				return returnToken(Token.TokenName.MP_INTEGER_LIT);
 		}
 		else {
 			resetBuffer();
-			return returnToken(Token.TokenName.MP_INTEGER);
+			return returnToken(Token.TokenName.MP_INTEGER_LIT);
 		}
 	}
 	
@@ -168,11 +168,11 @@ class MPscanner {
 			if (isNumber(ch))
 				return findFloat();
 			else
-				return returnToken(Token.TokenName.MP_FIXED);
+				return returnToken(Token.TokenName.MP_FIXED_LIT);
 		}
 		else {
 			resetBuffer();
-			return returnToken(Token.TokenName.MP_FIXED);
+			return returnToken(Token.TokenName.MP_FIXED_LIT);
 		}
 	}
 	
@@ -183,7 +183,7 @@ class MPscanner {
 			return findFloat();
 		else {
 			resetBuffer();
-			return returnToken(Token.TokenName.MP_FLOAT);
+			return returnToken(Token.TokenName.MP_FLOAT_LIT);
 		}
 	}
 	
