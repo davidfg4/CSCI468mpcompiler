@@ -5,7 +5,7 @@ import java.util.Map;
 public class Token {
 	public enum TokenName {
 		// Reserved words
-		MP_AND, MP_BEGIN, MP_DIV, MP_DO, MP_DOWNTO, MP_ELSE, MPEND, MP_FIXED,
+		MP_AND, MP_BEGIN, MP_DIV, MP_DO, MP_DOWNTO, MP_ELSE, MP_END, MP_FIXED,
 		MP_FLOAT, MP_FOR, MP_FUNCTION, MP_IF, MP_INTEGER, MP_MOD, MP_NOT,
 		MP_OR, MP_PROCEDURE, MP_PROGRAM, MP_READ, MP_REPEAT, MP_THEN, MP_TO,
 		MP_UNTIL, MP_VAR, MP_WHILE, MP_WRITE,
@@ -31,6 +31,7 @@ public class Token {
 		tempMap.put("do", TokenName.MP_DO);
 		tempMap.put("downto", TokenName.MP_DOWNTO);
 		tempMap.put("else", TokenName.MP_ELSE);
+		tempMap.put("end", TokenName.MP_END);
 		tempMap.put("fixed", TokenName.MP_FIXED);
 		tempMap.put("float", TokenName.MP_FLOAT);
 		tempMap.put("for", TokenName.MP_FOR);
@@ -44,7 +45,7 @@ public class Token {
 		tempMap.put("program", TokenName.MP_PROGRAM);
 		tempMap.put("read", TokenName.MP_READ);
 		tempMap.put("repeat", TokenName.MP_REPEAT);
-		tempMap.put("then", TokenName.MP_REPEAT);
+		tempMap.put("then", TokenName.MP_THEN);
 		tempMap.put("to", TokenName.MP_TO);
 		tempMap.put("until", TokenName.MP_UNTIL);
 		tempMap.put("var", TokenName.MP_VAR);
