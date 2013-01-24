@@ -105,10 +105,25 @@ class MPscanner {
 		else if (ch == '\'') {
 			return findString();
 		}
+		else if (ch == '{') 
+			return ignoreComment();
 		else
 			return returnToken(Token.TokenName.MP_ERROR);
 	}
 
+	private Token ignoreComment() throws IOException {
+		markBuffer();
+		char ch = getNextChar();
+		while(ch != '}') { 
+			ch = getNextChar();
+			if(ch == (char)4 ) {
+				resetBuffer();
+				return returnToken(Token.TokenName.MP_RUN_COMMENT);	// comment not closed before EOF
+			}
+		}
+		return getToken();	// ignore comment
+	}
+	
 	private Token findIdentifier() throws IOException {
 		markBuffer();
 		char ch = getNextChar();

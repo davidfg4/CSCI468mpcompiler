@@ -19,7 +19,7 @@ class MP {
 		}
 		StringBuilder tokenString = new StringBuilder();
 		while(token != null && token.getToken() != Token.TokenName.MP_EOF) {
-			if (token.getToken() == Token.TokenName.MP_ERROR) {
+			if (token.getToken() == Token.TokenName.MP_ERROR || token.getToken() == Token.TokenName.MP_RUN_COMMENT) {
 				scanner.printError(token);
 			}
 			System.out.println(pad(token.getToken().name(), 14) + " " +
