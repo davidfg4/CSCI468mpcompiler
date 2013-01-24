@@ -1,5 +1,7 @@
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 class MP {
 	MP(String filename) {
@@ -15,6 +17,7 @@ class MP {
 			System.out.println("Error while reading the first char of " + filename);
 			System.exit(1);
 		}
+		StringBuilder tokenString = new StringBuilder();
 		while(token != null && token.getToken() != Token.TokenName.MP_EOF) {
 			if (token.getToken() == Token.TokenName.MP_ERROR) {
 				scanner.printError(token);
@@ -23,12 +26,28 @@ class MP {
 					pad("" + token.getLine(), 4) + " " +
 					pad("" + token.getColumn(), 3) + " " +
 					token.getLexeme());
+			tokenString.append(pad(token.getToken().name(), 14) + " " +
+					pad("" + token.getLine(), 4) + " " +
+					pad("" + token.getColumn(), 3) + " " +
+					token.getLexeme() + "\n");
 			try {
 				token = scanner.getToken();
 			} catch (IOException e) {
 				System.out.println("Error while reading " + filename);
 				System.exit(1);
 			}
+		}
+		String tokenFileName = "token_file.txt";
+		File tokenFile = new File(tokenFileName);
+		PrintWriter pw = null;
+		try {
+			pw = new PrintWriter(tokenFile);
+			pw.print(tokenString);
+		}
+		catch(FileNotFoundException fnfe) { System.out.println("Error writing token file " + tokenFileName); } 
+		finally { 
+			if(pw != null)
+				pw.close(); 
 		}
 	}
 	
