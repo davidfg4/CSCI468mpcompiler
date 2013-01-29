@@ -66,7 +66,7 @@ public class Token {
 	}
 	
 	public static TokenName getReservedWord(String s) {
-		return ReservedWords.get(s);
+		return ReservedWords.get(s.toLowerCase());
 	}
 	
 	public TokenName getToken() {
