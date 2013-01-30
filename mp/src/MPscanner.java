@@ -20,12 +20,28 @@ class MPscanner {
 	private boolean fileComplete = false;
 	
 	MPscanner() {
-		lines.add(0, "");
+		
 	}
 
 	public boolean openFile(String filename) throws FileNotFoundException {
 		this.filename = filename;
+		// read in all the lines so we know them beforehand for error reporting
 		FileReader fr = new FileReader(filename);
+		reader = new BufferedReader(fr);
+		String line;
+		lines.add(0, "");
+		try {
+			line = reader.readLine();
+			while (line != null) {
+				lines.add(line);
+				line = reader.readLine();
+			}
+		} catch (IOException e) {
+			MP.printErr("Error: could not read " + filename);
+			System.exit(1);
+		}
+		// reset the file reader to the start
+		fr = new FileReader(filename);
 		reader = new BufferedReader(fr);
 		return true;
 	}
@@ -122,14 +138,16 @@ class MPscanner {
 	private Token ignoreComment() throws IOException {
 		markBuffer();
 		char ch = getNextChar();
-		while(ch != '}') { 
-			ch = getNextChar();
+		while(ch != '}') {
 			if(ch == (char)4 ) {
-				resetBuffer();
+				// Return just the first line of the run-on comment.
+				// The file pointer stays at the EOF.
+				lexeme = new StringBuilder(lexeme.toString().split("\n")[0]);
 				return returnToken(Token.TokenName.MP_RUN_COMMENT);	// comment not closed before EOF
 			} else if (ch == '{') {
 				MP.printErr(getError(filename, lineNumber, columnNumber, "Warning: Comment started within comment"));
 			}
+			ch = getNextChar();
 		}
 		return getToken();	// ignore comment
 	}
@@ -250,11 +268,6 @@ class MPscanner {
 	}
 	
 	private char getNextChar() throws IOException {
-		if (columnNumber == 1) {
-			reader.mark(512);
-			lines.add(lineNumber, reader.readLine());
-			reader.reset();
-		}
 		char ch = (char) reader.read();
 		if (ch == (char) -1)
 			ch = (char) 4;
@@ -276,7 +289,7 @@ class MPscanner {
 		markedLine = lineNumber;
 		markedColumn = columnNumber;
 		try {
-			reader.mark(10);
+			reader.mark(512);
 		} catch (IOException e) {
 			MP.printErr("Error: Failed to mark reader");
 			System.exit(1);
@@ -298,7 +311,7 @@ class MPscanner {
 	public String getError(String filename, int line, int col, String errorName) {
 		String error = "  File \"" + filename + "\", line " + line + ":\n";
 		error += "    " + getLine(line) + "\n";
-		error += String.format("    %1$" + col + "s", "^\n");
+		error += String.format("    %1$" + (col+1) + "s", "^\n");
 		error += errorName + " at column " + col;
 		return error;
 	}
