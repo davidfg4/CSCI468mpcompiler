@@ -246,6 +246,9 @@ class MPscanner {
 		if((char)ch == '\n') {
 			lineNumber++;
 			columnNumber = 1;
+		} else if (ch >= 65 && ch <=90) {
+			// convert uppercase to lowercase
+			ch = (char) (ch + 32);
 		}
 		return ch;
 	}
