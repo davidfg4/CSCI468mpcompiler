@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 class MP {
+	static PrintWriter pw = null;
+	
 	MP(String filename) {
 		MPscanner scanner = new MPscanner();
 		Token token = null;
@@ -11,44 +13,29 @@ class MP {
 			scanner.openFile(filename);
 			token = scanner.getToken();
 		} catch (FileNotFoundException e) {
-			System.out.println("Error: File " + filename + " not found");
+			printErr("Error: File " + filename + " not found");
 			System.exit(1);
 		} catch (IOException ioe) {
-			System.out.println("Error while reading the first char of " + filename);
+			printErr("Error: can't read the first char of " + filename);
 			System.exit(1);
 		}
-		StringBuilder tokenString = new StringBuilder();
 		while(token != null && token.getToken() != Token.TokenName.MP_EOF) {
 			if (token.getToken() == Token.TokenName.MP_ERROR || token.getToken() == Token.TokenName.MP_RUN_COMMENT) {
-				scanner.printError(token);
+				printErr(scanner.getError(token, "Error: Scanner error"));
 			}
-			System.out.println(pad(token.getToken().name(), 14) + " " +
+			print(pad(token.getToken().name(), 14) + " " +
 					pad("" + token.getLine(), 4) + " " +
 					pad("" + token.getColumn(), 3) + " " +
 					token.getLexeme());
-			tokenString.append(pad(token.getToken().name(), 14) + " " +
-					pad("" + token.getLine(), 4) + " " +
-					pad("" + token.getColumn(), 3) + " " +
-					token.getLexeme() + "\n");
 			try {
 				token = scanner.getToken();
 			} catch (IOException e) {
-				System.out.println("Error while reading " + filename);
+				printErr("Error: can't read " + filename);
 				System.exit(1);
 			}
 		}
-		String tokenFileName = "token_file.txt";
-		File tokenFile = new File(tokenFileName);
-		PrintWriter pw = null;
-		try {
-			pw = new PrintWriter(tokenFile);
-			pw.print(tokenString);
-		}
-		catch(FileNotFoundException fnfe) { System.out.println("Error writing token file " + tokenFileName); } 
-		finally { 
-			if(pw != null)
-				pw.close(); 
-		}
+		if (pw != null)
+			pw.close();
 	}
 	
 	public static void main(String args[]) {
@@ -60,7 +47,32 @@ class MP {
 		}
 	}
 	
-	public static String pad(String s, int n) {
+	public static void print(String s) {
+		print(s, true, true);
+	}
+	
+	public static void print(String s, boolean screen, boolean file) {
+		if (file && pw == null) {
+			String tokenFileName = "token_file.txt";
+			File tokenFile = new File(tokenFileName);
+			try {
+				pw = new PrintWriter(tokenFile);
+			} catch (FileNotFoundException e) {
+				printErr("Error: cannot write to token file");
+				System.exit(1);
+			}
+		}
+		if (screen)
+			System.out.println(s);
+		if (file)
+			pw.print(s + '\n');
+	}
+	
+	public static void printErr(String s) {
+		System.err.println(s);
+	}
+	
+	private static String pad(String s, int n) {
 		return String.format("%1$-" + n + "s", s);
 	}
 }

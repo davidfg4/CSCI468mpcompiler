@@ -119,6 +119,8 @@ class MPscanner {
 			if(ch == (char)4 ) {
 				resetBuffer();
 				return returnToken(Token.TokenName.MP_RUN_COMMENT);	// comment not closed before EOF
+			} else if (ch == '{') {
+				MP.printErr(getError(filename, lineNumber, columnNumber, "Warning: Comment started within comment"));
 			}
 		}
 		return getToken();	// ignore comment
@@ -260,7 +262,7 @@ class MPscanner {
 		try {
 			reader.mark(10);
 		} catch (IOException e) {
-			System.out.println("Error: Failed to mark reader");
+			MP.printErr("Error: Failed to mark reader");
 			System.exit(1);
 		}
 	}
@@ -272,16 +274,21 @@ class MPscanner {
 		try {
 			reader.reset();
 		} catch (IOException e) {
-			System.out.println("Error: Failed to reset marker");
+			MP.printErr("Error: Failed to reset marker");
 			System.exit(1);
 		}
 	}
 	
-	public void printError(Token t) {
-		System.out.println("  File \"" + filename + "\", line " + t.getLine() + ":");
-		System.out.println("    " + getLine(t.getLine()));
-		System.out.println(String.format("    %1$" + t.getColumn() + "s", "^"));
-		System.out.println("Scanner error at column " + t.getColumn());
+	public String getError(String filename, int line, int col, String errorName) {
+		String error = "  File \"" + filename + "\", line " + line + ":\n";
+		error += "    " + getLine(line) + "\n";
+		error += String.format("    %1$" + col + "s", "^\n");
+		error += errorName + " at column " + col;
+		return error;
+	}
+	
+	public String getError(Token t, String errorName) {
+		return getError(filename, t.getLine(), t.getColumn(), errorName);
 	}
 	
 	private String getLine(int l) {
