@@ -216,7 +216,7 @@ class MPscanner {
 				return returnToken(Token.TokenName.MP_STRING_LIT);
 			}
 		} else if (ch == (char)4)
-			return returnToken(Token.TokenName.MP_ERROR);
+			return returnToken(Token.TokenName.MP_RUN_STRING);
 		return findString();
 	}
 	

@@ -20,8 +20,12 @@ class MP {
 			System.exit(1);
 		}
 		while(token != null && token.getToken() != Token.TokenName.MP_EOF) {
-			if (token.getToken() == Token.TokenName.MP_ERROR || token.getToken() == Token.TokenName.MP_RUN_COMMENT) {
+			if (token.getToken() == Token.TokenName.MP_ERROR) {
 				printErr(scanner.getError(token, "Error: Scanner error"));
+			} else if (token.getToken() == Token.TokenName.MP_RUN_COMMENT) {
+				printErr(scanner.getError(token, "Error: Unclosed comment"));
+			} else if (token.getToken() == Token.TokenName.MP_RUN_STRING) {
+				printErr(scanner.getError(token, "Error: Unclosed string"));
 			}
 			print(pad(token.getToken().name(), 14) + " " +
 					pad("" + token.getLine(), 4) + " " +
