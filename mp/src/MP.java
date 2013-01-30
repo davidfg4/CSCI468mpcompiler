@@ -23,9 +23,9 @@ class MP {
 			if (token.getToken() == Token.TokenName.MP_ERROR) {
 				printErr(scanner.getError(token, "Error: Scanner error"));
 			} else if (token.getToken() == Token.TokenName.MP_RUN_COMMENT) {
-				printErr(scanner.getError(token, "Error: Unclosed comment"));
+				printErr(scanner.getError(token, "Error: Unterminated comment"));
 			} else if (token.getToken() == Token.TokenName.MP_RUN_STRING) {
-				printErr(scanner.getError(token, "Error: Unclosed string"));
+				printErr(scanner.getError(token, "Error: Unterminated string"));
 			}
 			print(pad(token.getToken().name(), 14) + " " +
 					pad("" + token.getLine(), 4) + " " +

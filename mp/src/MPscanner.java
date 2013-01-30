@@ -10,6 +10,7 @@ class MPscanner {
 	private BufferedReader reader;
 	private int lineNumber = 1;
 	private int columnNumber = 1;
+	private int tokenStartLine;
 	private int tokenStartColumn;
 	private List<String> lines = new ArrayList<String>();
 	private StringBuilder lexeme = new StringBuilder();
@@ -31,6 +32,7 @@ class MPscanner {
 	
 	public Token getToken() throws IOException {
 		lexeme = new StringBuilder();
+		tokenStartLine = lineNumber;
 		tokenStartColumn = columnNumber;
 		char ch = getNextChar();
 	
@@ -226,8 +228,9 @@ class MPscanner {
 				lexeme.deleteCharAt(lexeme.length() - 1);
 				return returnToken(Token.TokenName.MP_STRING_LIT);
 			}
-		} else if (ch == (char)4) {
+		} else if (ch == (char)4 || ch == '\n') {
 			lexeme.deleteCharAt(0);
+			lexeme.deleteCharAt(lexeme.length() - 1);
 			return returnToken(Token.TokenName.MP_RUN_STRING);
 		}
 		return findString();
@@ -309,7 +312,7 @@ class MPscanner {
 	}
 	
 	private Token returnToken(Token.TokenName tokenName) {
-		token = new Token(tokenName, lineNumber, tokenStartColumn,
+		token = new Token(tokenName, tokenStartLine, tokenStartColumn,
 				lexeme.toString());
 		return token;
 	}
