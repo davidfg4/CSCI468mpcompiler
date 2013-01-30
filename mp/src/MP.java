@@ -19,7 +19,7 @@ class MP {
 			printErr("Error: can't read the first char of " + filename);
 			System.exit(1);
 		}
-		while(token != null && token.getToken() != Token.TokenName.MP_EOF) {
+		while(token != null) {
 			if (token.getToken() == Token.TokenName.MP_ERROR) {
 				printErr(scanner.getError(token, "Error: Scanner error"));
 			} else if (token.getToken() == Token.TokenName.MP_RUN_COMMENT) {

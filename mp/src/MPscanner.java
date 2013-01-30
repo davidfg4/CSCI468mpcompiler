@@ -16,6 +16,7 @@ class MPscanner {
 	private String markedLexeme = "";
 	private int markedLine, markedColumn;
 	private Token token;
+	private boolean fileComplete = false;
 	
 	MPscanner() {
 		lines.add(0, "");
@@ -34,7 +35,12 @@ class MPscanner {
 		char ch = getNextChar();
 	
 		if (ch == (char)4) {
-			return returnToken(Token.TokenName.MP_EOF);
+			if (fileComplete)
+				return null;
+			else {
+				fileComplete = true;
+				return returnToken(Token.TokenName.MP_EOF);
+			}
 		}
 		else if (ch == '\n' || ch == ' ')
 			return getToken();
@@ -209,14 +215,21 @@ class MPscanner {
 		if (ch == '\'') {
 			markBuffer();
 			ch = getNextChar();
-			if (ch == '\'')
+			if (ch == '\'') {
+				// delete the double quote to make it a single quote
+				lexeme.deleteCharAt(lexeme.length() - 1);
 				return findString();
-			else {
+			} else {
 				resetBuffer();
+				// delete surrounding quotes
+				lexeme.deleteCharAt(0);
+				lexeme.deleteCharAt(lexeme.length() - 1);
 				return returnToken(Token.TokenName.MP_STRING_LIT);
 			}
-		} else if (ch == (char)4)
+		} else if (ch == (char)4) {
+			lexeme.deleteCharAt(0);
 			return returnToken(Token.TokenName.MP_RUN_STRING);
+		}
 		return findString();
 	}
 	
@@ -239,11 +252,11 @@ class MPscanner {
 			lines.add(lineNumber, reader.readLine());
 			reader.reset();
 		}
-		int ch2 = reader.read();
-		if (ch2 == -1)
-			ch2 = 4;
-		char ch = (char) ch2;
-		lexeme.append(ch);
+		char ch = (char) reader.read();
+		if (ch == (char) -1)
+			ch = (char) 4;
+		else
+			lexeme.append(ch);
 		columnNumber++;
 		if((char)ch == '\n') {
 			lineNumber++;
