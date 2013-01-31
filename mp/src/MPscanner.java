@@ -112,6 +112,8 @@ class MPscanner {
 			return returnToken(Token.TokenName.MP_MINUS);
 		else if (ch == '*')
 			return returnToken(Token.TokenName.MP_TIMES);
+		else if (ch == '/')
+			return returnToken(Token.TokenName.MP_DIV);
 		else if (ch == '_') {
 			markBuffer();
 			ch = getNextChar();
