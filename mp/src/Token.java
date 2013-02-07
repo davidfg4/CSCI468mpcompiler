@@ -19,7 +19,9 @@ public class Token {
 		// End of file
 		MP_EOF,
 		// Errors
-		MP_RUN_COMMENT, MP_RUN_STRING, MP_ERROR
+		MP_RUN_COMMENT, MP_RUN_STRING, MP_ERROR,
+		// TODO remove dummies
+		DUMMY_1, DUMMY_2, DUMMY_3
 	}
 	
 	private static final Map<String, TokenName> ReservedWords;
