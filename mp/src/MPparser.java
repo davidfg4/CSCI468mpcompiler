@@ -513,103 +513,380 @@ public class MPparser {
 		}
 	}
 
+	/**
+	 * Pre: ReadStatement is leftmost nonterminal
+	 * Post: ReadStatement is expanded
+	 */
 	private void readStatement() {
 		switch (lookahead.getToken()) {
+		// ReadStatement --> "read" "(" ReadParameter ReadParameterTail ")"
+		case DUMMY_1:
+			match(Token.TokenName.MP_READ);
+			match(Token.TokenName.MP_LPAREN);
+			readParameter();
+			readParameterTail();
+			match(Token.TokenName.MP_RPAREN);
+			break;
+		default:
+			error("ReadStatement not implemented yet.");
+			break;
 		}
 	}
 
+	/**
+	 * Pre: ReadParameterTail is leftmost nonterminal
+	 * Post: ReadParameterTail is expanded
+	 */
 	private void readParameterTail() {
 		switch (lookahead.getToken()) {
+		// ReadParameterTail --> "," ReadParameter ReadParameterTail
+		case DUMMY_1:
+			match(Token.TokenName.MP_COMMA);
+			readParameter();
+			readParameterTail();
+			break;
+		// ReadParameterTail --> epsilon
+		case DUMMY_2:
+			break;
+		default: 
+			error("ReadParameterTail not implemented yet.");
+			break;
 		}
 	}
 
+	/**
+	 * Pre: ReadParameter is leftmost nonterminal
+	 * Post: ReadParameter is expanded
+	 */
 	private void readParameter() {
 		switch (lookahead.getToken()) {
+		// ReadParameter --> VariableIdentifier
+		case DUMMY_1:
+			variableIdentifier();
+			break;
+		default: 
+			error("ReadParameter not implemented yet.");
+			break;
 		}
 	}
 
+	/**
+	 * Pre: WriteStatement is leftmost nonterminal
+	 * Post: WriteStatement is expanded
+	 */
 	private void writeStatement() {
 		switch (lookahead.getToken()) {
+		// WriteStatement --> "write" "(" WriteParameter WriteParameterTail ")"
+		case DUMMY_1:
+			match(Token.TokenName.MP_WRITE);
+			match(Token.TokenName.MP_LPAREN);
+			writeParameter();
+			writeParameterTail();
+			match(Token.TokenName.MP_RPAREN);
+			break;
+		default:
+			error("WriteStatement not implemented yet.");
+			break;
 		}
 	}
 
+	/**
+	 * Pre: WriteParameterTail is leftmost nonterminal
+	 * Post: WriteParameterTail is expanded
+	 */
 	private void writeParameterTail() {
 		switch (lookahead.getToken()) {
+		// WriteParameterTail --> "," WriteParameter WriteParameterTail
+		case DUMMY_1:
+			match(Token.TokenName.MP_COMMA);
+			writeParameter();
+			writeParameterTail();
+			break;
+		// WriteParameterTail --> epsilon
+		case DUMMY_2:
+			break;
+		default:
+			error("WriteParameterTail not implemented yet.");
+			break;
 		}
 	}
 
+	/**
+	 * Pre: WriteParameter is leftmost nonterminal
+	 * Post: WriteParameter is expanded
+	 */
 	private void writeParameter() {
 		switch (lookahead.getToken()) {
+		// WriteParameter --> OrdinalExpression
+		case DUMMY_1:
+			ordinalExpression();
+			break;
+		default:
+			error("WriteParameter not implemented yet");
+			break;
 		}
 	}
 
+	/**
+	 * Pre: AssignmentStatement is leftmost nonterminal
+	 * Post: AssignmentStatement is expanded
+	 */
 	private void assignmentStatement() {
 		switch (lookahead.getToken()) {
+		// AssignmentStatement --> VariableIdentifier ":=" Expression
+		case DUMMY_1:
+			variableIdentifier();
+			match(Token.TokenName.MP_ASSIGN);
+			expression();
+			break;
+		// AssignmentStatement --> FunctionIdentifier ":=" Expression
+		case DUMMY_2:
+			functionIdentifier();
+			match(Token.TokenName.MP_ASSIGN);
+			expression();
+			break;
+		default:
+			error("AssignmentStatement not implemented yet");
+			break;
 		}
 	}
 
+	/**
+	 * Pre: ifStatement is leftmost nonterminal
+	 * Post: ifStatement is expanded
+	 */
 	private void ifStatement() {
 		switch (lookahead.getToken()) {
+		// IfStatement --> "if" BooleanExpression "then" Statement OptionalElsePart
+		case DUMMY_1:
+			match(Token.TokenName.MP_IF);
+			booleanExpression();
+			match(Token.TokenName.MP_THEN);
+			statement();
+			optionalElsePart();
+			break;
+		default:
+			error("IfStatement not implemented yet.");
+			break;
 		}
 	}
 
 	private void optionalElsePart() {
 		switch (lookahead.getToken()) {
+		// OptionalElsePart --> "else" Statement
+		case DUMMY_1:
+			match(Token.TokenName.MP_ELSE);
+			statement();
+			break;
+		// OptionalElsePart --> epsilon
+		case DUMMY_2:
+			break;
+		default:
+			error("OptionalElsePart not implemented yet.");
+			break;
 		}
 	}
 
+	/**
+	 * Pre: RepeatStatement is leftmost nonterminal
+	 * Post: RepeatStatement is expanded
+	 */
 	private void repeatStatement() {
 		switch (lookahead.getToken()) {
+		// RepeatStatement --> "repeat" StatementSequence "until" BooleanExpression
+		case DUMMY_1:
+			match(Token.TokenName.MP_REPEAT);
+			statementSequence();
+			match(Token.TokenName.MP_UNTIL);
+			booleanExpression();
+			break;
+		default:
+			error("RepeatStatement not implemented yet");
+			break;
 		}
 	}
 
+	/**
+	 * Pre: WhileStatement is leftmost nonterminal
+	 * Post: WhileStatement is expanded
+	 */
 	private void whileStatement() {
 		switch (lookahead.getToken()) {
+		// WhileStatement --> "while" BooleanExpression "do" Statement
+		case DUMMY_1:
+			match(Token.TokenName.MP_WHILE);
+			booleanExpression();
+			match(Token.TokenName.MP_DO);
+			statement();
+			break;
+		default:
+			error("WhileStatement not implemented yet.");
+			break;
 		}
 	}
 
+	/**
+	 * Pre: ForStatement is leftmost nonterminal
+	 * Post: ForStatement is expanded
+	 */
 	private void forStatement() {
 		switch (lookahead.getToken()) {
+		// ForStatement --> "for" ControlVariable ":=" InitialValue StepValue FinalValue "do" Statement
+		case DUMMY_1:
+			match(Token.TokenName.MP_FOR);
+			controlVariable();
+			match(Token.TokenName.MP_ASSIGN);
+			initialValue();
+			stepValue();
+			finalValue();
+			match(Token.TokenName.MP_DO);
+			statement();
+			break;
+		default:
+			error("ForStatement not implemented yet.");
+			break;
 		}
 	}
 
+	/**
+	 * Pre: ControlVariable is leftmost nonterminal
+	 * Post: ControlVariable is expanded
+	 */
 	private void controlVariable() {
 		switch (lookahead.getToken()) {
+		// ControlVariable --> VariableIdentifier
+		case DUMMY_1:
+			variableIdentifier();
+			break;
+		default:
+			error("ControlVariable not implemented yet.");
+			break;
 		}
 	}
 
+	/**
+	 * Pre: InitialValue is leftmost nonterminal
+	 * Post: InitialValue is expanded
+	 */
 	private void initialValue() {
 		switch (lookahead.getToken()) {
+		// InitialValue --> OrdinalExpression
+		case DUMMY_1:
+			ordinalExpression();
+			break;
+		default: 
+			error("InitialValue not implemented yet");
+			break;
 		}
 	}
 
+	/**
+	 * Pre: StepValue is leftmost nonterminal
+	 * Post: StepValue is expanded
+	 */
 	private void stepValue() {
 		switch (lookahead.getToken()) {
+		// StepValue --> "to"
+		case DUMMY_1:
+			match(Token.TokenName.MP_TO);
+		// StepValue --> "downto"
+		case DUMMY_2:
+			match(Token.TokenName.MP_DOWNTO);
+			break;
+		default:
+			error("StepValue not implemented yet.");
+			break;
 		}
 	}
 
+	/**
+	 * Pre: FinalValue is leftmost nonterminal
+	 * Post: FinalValue is expanded
+	 */
 	private void finalValue() {
 		switch (lookahead.getToken()) {
+		// FinalValue --> OrdinalExpression
+		case DUMMY_1:
+			ordinalExpression();
+			break;
+		default:
+			error("FinalValue not implemented yet");
+			break;
 		}
 	}
 
+	/**
+	 * Pre: ProcedureStatement is leftmost nonterminal
+	 * Post: ProcedureStatement is expanded
+	 */
 	private void procedureStatement() {
 		switch (lookahead.getToken()) {
+		// ProcedureStatement --> ProcedureIdentifier OptionalActualParameterList
+		case DUMMY_1:
+			procedureIdentifier();
+			optionalActualParameterList();
+			break;
+		default:
+			error("ProcedureStatement not implemented yet.");
+			break;
 		}
 	}
 
+	/**
+	 * Pre: OptionalActualParameterList is leftmost nonterminal
+	 * Post: OptionalActualParameterList is expanded
+	 */
 	private void optionalActualParameterList() {
 		switch (lookahead.getToken()) {
+		// OptionalActualParameterList --> "(" ActualParameter ActualParameterTail ")"
+		case DUMMY_1:
+			match(Token.TokenName.MP_LPAREN);
+			actualParameter();
+			actualParameterTail();
+			match(Token.TokenName.MP_RPAREN);
+			break;
+		// OptionalActualParameterList --> epsilon
+		case DUMMY_2:
+			break;
+		default:
+			error("OptionalActualParameterList not implemented yet.");
+			break;
 		}
 	}
 
+	/**
+	 * Pre: ActualParameterTail is leftmost nonterminal
+	 * Post: ActualParameterTail is expanded
+	 */
 	private void actualParameterTail() {
 		switch (lookahead.getToken()) {
+		// ActualParameterTail --> "," ActualParameter ActualParameterTail
+		case DUMMY_1:
+			match(Token.TokenName.MP_COMMA);
+			actualParameter();
+			actualParameterTail();
+			break;
+		case DUMMY_2:
+			break;
+		default:
+			error("ActualParameterTail not implemented yet");
+			break;
 		}
 	}
 
+	/**
+	 * Pre: ActualParameter is leftmost nonterminal
+	 * Post: ActualParameter is expanded
+	 */
 	private void actualParameter() {
 		switch (lookahead.getToken()) {
+		// ActualParameter --> OrdinalExpression
+		case DUMMY_1:
+			ordinalExpression();
+			break;
+		default:
+			error("ActualParameter not implemented yet");
+			break;
 		}
 	}
 
