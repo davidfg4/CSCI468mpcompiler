@@ -256,63 +256,260 @@ public class MPparser {
 		}
 	}
 
+	/**
+	 * Pre: FunctionHeading is leftmost nonterminal
+	 * Post: ProcedureHeading is expanded
+	 */
 	private void functionHeading() {
 		switch (lookahead.getToken()) {
+		// FunctionHeading --> "function" FunctionIdentifier OptionalFormalParameterList Type
+		case DUMMY_1:
+			match(Token.TokenName.MP_FUNCTION);
+			functionIdentifier();
+			optionalFormalParameterList();
+			type();
+			break;
+		default:
+			error("FunctionHeading not implemented yet.");
+			break;
 		}
 	}
 
+	/**
+	 * Pre: OptionalFormalParameterList is leftmost nonterminal
+	 * Post: OptionalFormatlParameterList is expanded
+	 */
 	private void optionalFormalParameterList() {
 		switch (lookahead.getToken()) {
+		// OptionalFormalParameterList --> "(" FormalParameterSection FormalParameterSectionTail ")"
+		case DUMMY_1:
+			match(Token.TokenName.MP_RPAREN);
+			formalParameterSection();
+			formalParameterSectionTail();
+			match(Token.TokenName.MP_LPAREN);
+			break;
+		// OptionalFormalParameterList --> epsilon
+		case DUMMY_2:
+			break;
+		default:
+			error("OptionalFormalParameterList not implemented yet.");
+			break;
 		}
 	}
 
-	private void formatParameterSectionTail() {
+	/**
+	 * Pre: FormalParameterSectionTail is leftmost nonterminal
+	 * Post: FormatParameterSectionTail
+	 */
+	private void formalParameterSectionTail() {
 		switch (lookahead.getToken()) {
+		// FormalParameterSectionTail --> ";" FormalParameterSection FormalParameterSectionTail
+		case DUMMY_1:
+			match(Token.TokenName.MP_SCOLON);
+			formalParameterSection();
+			formalParameterSectionTail();
+			break;
+		// FormalParameterSectionTail --> epsilon
+		case DUMMY_2:
+			break;
+		default:
+			error("FormalParameterSectionTail not implemented yet.");
+			break;
 		}
 	}
 
+	/**
+	 * Pre: FormalParameterSection is leftmost nonterminal
+	 * Post: FormalParameterSection is expanded
+	 */
 	private void formalParameterSection() {
 		switch (lookahead.getToken()) {
+		// FormalParameterSection --> ValueParameterSection
+		case DUMMY_1:
+			valueParameterSection();
+			break;
+		// FormalParameterSection --> VariableParameterSection
+		case DUMMY_2:
+			variableParameterSection();
+			break;
+		default:
+			error("FormalParameterSection not implemented yet.");
+			break;
 		}
 	}
 
+	/**
+	 * Pre: ValueParameterSection is leftmost nonterminal
+	 * Post: ValueParameterSection is expanded
+	 */
 	private void valueParameterSection() {
 		switch (lookahead.getToken()) {
+		// ValueParameterSection --> IdentifierList ":" Type
+		case DUMMY_1:
+			identifierList();
+			match(Token.TokenName.MP_COLON);
+			type();
+			break;
+		default:
+			error("ValueParameterSection not implemented yet");
+			break;
 		}
 	}
 
+	/**
+	 * Pre: VariableParameterSection is leftmost nonterminal
+	 * Post: VariableParameterSection is expanded
+	 */
 	private void variableParameterSection() {
 		switch (lookahead.getToken()) {
+		// VariableParameterSection --> "var" IdentifierList ":" Type
+		case DUMMY_1:
+			match(Token.TokenName.MP_VAR);
+			identifierList();
+			match(Token.TokenName.MP_COLON);
+			type();
+			break;
+		default:
+			error("VariableParameterSection not implemented yet");
+			break;
 		}
 	}
 
+	/**
+	 * Pre: StatementPart is leftmost nonterminal
+	 * Post: StatementPart is expanded
+	 */
 	private void statementPart() {
 		switch (lookahead.getToken()) {
+		// StatementPart --> CompoundStatement
+		case DUMMY_1:
+			compoundStatement();
+			break;
+		default:
+			break;
 		}
 	}
 
+	/**
+	 * Pre: CompoundStatement is leftmost nonterminal
+	 * Post: CompoundStatement is expanded
+	 */
 	private void compoundStatement() {
 		switch (lookahead.getToken()) {
+		// CompoundStatement --> "begin" StatementSequence "end"
+		case DUMMY_1:
+			match(Token.TokenName.MP_BEGIN);
+			statementSequence();
+			match(Token.TokenName.MP_END);
+			break;
+		default:
+			error("CompoundStatement not implemented yet.");
+			break;
 		}
 	}
 
+	/**
+	 * Pre: StatementSequence is leftmost nonterminal
+	 * Post: StatementSequence is expanded
+	 */
 	private void statementSequence() {
 		switch (lookahead.getToken()) {
+		// StatementSequence --> Statement StatementTail
+		case DUMMY_1:
+			statement();
+			statementTail();
+			break;
+		default:
+			error("StatementSequence not implemented yet.");
+			break;
 		}
 	}
 
+	/**
+	 * Pre: StatementTail is leftmost nonterminal
+	 * Post: StatementTail is expanded
+	 */
 	private void statementTail() {
 		switch (lookahead.getToken()) {
+		// StatementTail --> ";" Statement StatementTail
+		case DUMMY_1:
+			match(Token.TokenName.MP_SCOLON);
+			statement();
+			statementTail();
+			break;
+		// StatementTail --> epsilon
+		case DUMMY_2:
+			break;
+		default:
+			error("StatementTail not implemented yet.");
+			break;
 		}
 	}
 
+	/**
+	 * Pre: Statement is leftmost nonterminal
+	 * Post: Statement is expanded
+	 */
 	private void statement() {
 		switch (lookahead.getToken()) {
+		// Statement --> EmptyStatement
+		case DUMMY_1:
+			emptyStatement();
+			break;
+		// Statement --> CompoundStatement
+		case DUMMY_2:
+			compoundStatement();
+			break;
+		// Statement --> ReadStatement
+		case DUMMY_3:
+			readStatement();
+			break;
+		// Statement --> WriteStatement
+		case DUMMY_4:
+			writeStatement();
+			break;
+		// Statement --> AssignmentStatement
+		case DUMMY_5:
+			assignmentStatement();
+			break;
+		// Statement --> IfStatement
+		case DUMMY_6:
+			ifStatement();
+			break;
+		// Statement --> WhileStatement
+		case DUMMY_7:
+			whileStatement();
+			break;
+		// Statement --> RepeatStatement
+		case DUMMY_8:
+			repeatStatement();
+			break;
+		// Statement --> ForStatement
+		case DUMMY_9:
+			forStatement();
+			break;
+		// Statement --> ProcedureStatement
+		case DUMMY_10:
+			procedureStatement();
+			break;
+		default:
+			error("Statement not implemented yet.");
+			break;
 		}
 	}
 
+	/**
+	 * Pre: EmptyStatement is leftmost nonterminal
+	 * Post: EmptyStatement is expanded
+	 */
 	private void emptyStatement() {
 		switch (lookahead.getToken()) {
+		// EmptyStatement --> epsilon
+		case DUMMY_1:
+			break;
+		default:
+			error("EmptyStatement not implemented yet.");
+			break;
 		}
 	}
 
