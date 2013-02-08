@@ -32,10 +32,10 @@ public class MPparser {
 	 */
 	private void systemGoal() {
 		switch (lookahead.getToken()) {
-		// SystemGoal --> Program $
+		// SystemGoal --> Program eof
 		case DUMMY_1:
 			program();
-			// TODO deal with cash
+			match(Token.TokenName.MP_EOF);
 			break;
 		default:
 			error("SystemGoal not implemented yet.");
@@ -111,9 +111,6 @@ public class MPparser {
 			match(Token.TokenName.MP_SCOLON);
 			variableDeclarationTail();
 			break;
-		// VariableDeclarationPart --> epsilon
-		case DUMMY_2:
-			break;
 		default:
 			error("VariableDeclarationPart not implemented yet.");
 			break;
@@ -170,6 +167,10 @@ public class MPparser {
 		// Type --> "Float"
 		case DUMMY_2:
 			match(Token.TokenName.MP_FLOAT);
+			break;
+		// Type --> "Boolean"
+		case DUMMY_3:
+			match(Token.TokenName.MP_BOOLEAN);
 			break;
 		default:
 			error("Type not implemented yet.");
@@ -266,6 +267,7 @@ public class MPparser {
 			match(Token.TokenName.MP_FUNCTION);
 			functionIdentifier();
 			optionalFormalParameterList();
+			match(Token.TokenName.MP_COLON);
 			type();
 			break;
 		default:
@@ -865,6 +867,7 @@ public class MPparser {
 			actualParameter();
 			actualParameterTail();
 			break;
+		// ActualParameterTail --> epsilon
 		case DUMMY_2:
 			break;
 		default:
