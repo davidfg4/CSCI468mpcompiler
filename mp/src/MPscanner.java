@@ -78,7 +78,7 @@ class MPscanner {
 			markBuffer();
 			ch = getNextChar();
 			if (ch == '=')
-				return returnToken(Token.TokenName.MP_GEQUEL);
+				return returnToken(Token.TokenName.MP_GEQUAL);
 			else {
 				resetBuffer();
 				return returnToken(Token.TokenName.MP_GTHAN);
