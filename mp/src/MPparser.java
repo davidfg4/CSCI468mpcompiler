@@ -1024,12 +1024,17 @@ public class MPparser {
 	 */
 	private void actualParameter() {
 		switch (lookahead.getToken()) {
-		// ActualParameter --> OrdinalExpression
-		case DUMMY_1:
+		// rule 69: ActualParameter --> OrdinalExpression
+		case MP_LPAREN:
+		case MP_PLUS:
+		case MP_MINUS:
+		case MP_IDENTIFIER:
+		case MP_INTEGER_LIT:
+		case MP_NOT:
 			ordinalExpression();
 			break;
 		default:
-			error("ActualParameter not implemented yet");
+			syntaxError("an expression");
 			break;
 		}
 	}
@@ -1040,13 +1045,18 @@ public class MPparser {
 	 */
 	private void expression() {
 		switch (lookahead.getToken()) {
-		// Expression --> SimpleExpression OptionalRelationalPart
-		case DUMMY_1:
+		// rule 70: Expression --> SimpleExpression OptionalRelationalPart
+		case MP_LPAREN:
+		case MP_PLUS:
+		case MP_MINUS:
+		case MP_IDENTIFIER:
+		case MP_INTEGER_LIT:
+		case MP_NOT:
 			simpleExpression();
 			optionalRelationalPart();
 			break;
 		default:
-			error("Expression not implemented yet");
+			syntaxError("an expression");
 			break;
 		}
 	}
@@ -1057,16 +1067,30 @@ public class MPparser {
 	 */
 	private void optionalRelationalPart() {
 		switch (lookahead.getToken()) {
-		// OptionalRelationalPart --> RelationalOperator SimpleExpression
-		case DUMMY_1:
+		// rule 71: OptionalRelationalPart --> RelationalOperator SimpleExpression
+		case MP_EQUAL:
+		case MP_LTHAN:
+		case MP_GTHAN:
+		case MP_LEQUAL:
+		case MP_GEQUAL:
+		case MP_NEQUAL:
 			relationalOperator();
 			simpleExpression();
 			break;
-		// OptionalRelationalPart --> epsilon
-		case DUMMY_2:
+		// rule 72: OptionalRelationalPart --> epsilon
+		case MP_COMMA:
+		case MP_SCOLON:
+		case MP_RPAREN:
+		case MP_DO:
+		case MP_DOWNTO:
+		case MP_ELSE:
+		case MP_END:
+		case MP_THEN:
+		case MP_TO:
+		case MP_UNTIL:
 			break;
 		default:
-			error("OptionalRelationalPart not implemented yet");
+			syntaxError("a relational operator ('>', '<', etc)");
 			break;
 		}
 	}
@@ -1077,32 +1101,32 @@ public class MPparser {
 	 */
 	private void relationalOperator() {
 		switch (lookahead.getToken()) {
-		// RelationalOperator --> "="
-		case DUMMY_1:
+		// rule 73: RelationalOperator --> "="
+		case MP_EQUAL:
 			match(Token.TokenName.MP_EQUAL);
 			break;
-		// RelationalOperator --> "<"
-		case DUMMY_2:
+		// rule 74: RelationalOperator --> "<"
+		case MP_LTHAN:
 			match(Token.TokenName.MP_LTHAN);
 			break;
-		// RelationalOperator --> ">"
-		case DUMMY_3:
+		// rule 75: RelationalOperator --> ">"
+		case MP_GTHAN:
 			match(Token.TokenName.MP_GTHAN);
 			break;
-		// RelationalOperator --> "<="
-		case DUMMY_4:
+		// rule 76: RelationalOperator --> "<="
+		case MP_LEQUAL:
 			match(Token.TokenName.MP_LEQUAL);
 			break;
-		// RelationalOperator --> ">="
-		case DUMMY_5:
+		// rule 77: RelationalOperator --> ">="
+		case MP_GEQUAL:
 			match(Token.TokenName.MP_GEQUAL);
 			break;
-		// RelationalOperator --> "<>"
-		case DUMMY_6:
+		// rule 76: RelationalOperator --> "<>"
+		case MP_NEQUAL:
 			match(Token.TokenName.MP_NEQUAL);
 			break;
 		default:
-			error("RelationalOperator not implemented yet.");
+			syntaxError("a relational operator ('>', '<', etc)");
 			break;
 		}
 	}
@@ -1113,14 +1137,19 @@ public class MPparser {
 	 */
 	private void simpleExpression() {
 		switch (lookahead.getToken()) {
-		// SimpleExpression --> OptionalSign Term TermTail
-		case DUMMY_1:
+		// rule 79: SimpleExpression --> OptionalSign Term TermTail
+		case MP_LPAREN:
+		case MP_PLUS:
+		case MP_MINUS:
+		case MP_IDENTIFIER:
+		case MP_INTEGER_LIT:
+		case MP_NOT:
 			optionalSign();
 			term();
 			termTail();
 			break;
 		default:
-			error("SimpleExpression not implemented yet");
+			syntaxError("an expression");
 			break;
 		}
 	}
@@ -1131,17 +1160,34 @@ public class MPparser {
 	 */
 	private void termTail() {
 		switch (lookahead.getToken()) {
-		// TermTail --> AddingOperator Term TermTail
-		case DUMMY_1:
+		// rule 80: TermTail --> AddingOperator Term TermTail
+		case MP_PLUS:
+		case MP_MINUS:
+		case MP_OR:
 			addingOperator();
 			term();
 			termTail();
 			break;
-		// TermTail --> epsilon
-		case DUMMY_2:
+		// rule 81: TermTail --> epsilon
+		case MP_COMMA:
+		case MP_SCOLON:
+		case MP_RPAREN:
+		case MP_EQUAL:
+		case MP_LTHAN:
+		case MP_GTHAN:
+		case MP_LEQUAL:
+		case MP_GEQUAL:
+		case MP_NEQUAL:
+		case MP_DO:
+		case MP_DOWNTO:
+		case MP_ELSE:
+		case MP_END:
+		case MP_THEN:
+		case MP_TO:
+		case MP_UNTIL:
 			break;
 		default:
-			error("TermTail not implemented yet.");
+			syntaxError("term tail");
 			break;
 		}
 	}
@@ -1152,19 +1198,22 @@ public class MPparser {
 	 */
 	private void optionalSign() {
 		switch (lookahead.getToken()) {
-		// OptionalSign --> "+"
-		case DUMMY_1:
+		// rule 82: OptionalSign --> "+"
+		case MP_PLUS:
 			match(Token.TokenName.MP_PLUS);
 			break;
-		// OptionalSign --> "-"
-		case DUMMY_2:
+		// rule 83: OptionalSign --> "-"
+		case MP_MINUS:
 			match(Token.TokenName.MP_MINUS);
 			break;
-		// OptionalSign --> epsilon
-		case DUMMY_3:
+		// rule 84: OptionalSign --> epsilon
+		case MP_LPAREN:
+		case MP_IDENTIFIER:
+		case MP_INTEGER_LIT:
+		case MP_NOT:
 			break;
 		default:
-			error("OptionalSign not implemented yet.");
+			syntaxError("sign ('+' or '-') or start of term");
 			break;
 		}
 	}
@@ -1175,20 +1224,20 @@ public class MPparser {
 	 */
 	private void addingOperator() {
 		switch (lookahead.getToken()) {
-		// AddingOperator --> "+"
-		case DUMMY_1:
+		// rule 85: AddingOperator --> "+"
+		case MP_PLUS:
 			match(Token.TokenName.MP_PLUS);
 			break;
-		// AddingOperator --> "-"
-		case DUMMY_2:
+		// rule 86: AddingOperator --> "-"
+		case MP_MINUS:
 			match(Token.TokenName.MP_MINUS);
 			break;
-		// AddingOperator --> "or"
-		case DUMMY_3:
+		// rule 87: AddingOperator --> "or"
+		case MP_OR:
 			match(Token.TokenName.MP_OR);
 			break;
 		default:
-			error("AddingOperator not implemented yet.");
+			syntaxError("'+', '-', or 'or'");
 			break;
 		}
 	}
@@ -1199,13 +1248,16 @@ public class MPparser {
 	 */
 	private void term() {
 		switch (lookahead.getToken()) {
-		// Term --> Factor FactorTail
-		case DUMMY_1:
+		// rule 88: Term --> Factor FactorTail
+		case MP_LPAREN:
+		case MP_IDENTIFIER:
+		case MP_INTEGER_LIT:
+		case MP_NOT:
 			factor();
 			factorTail();
 			break;
 		default:
-			error("Term not implemented yet.");
+			syntaxError("a term");
 			break;
 		}
 	}
@@ -1216,17 +1268,38 @@ public class MPparser {
 	 */
 	private void factorTail() {
 		switch (lookahead.getToken()) {
-		// FactorTail --> MultiplyingOperator Factor FactorTail
-		case DUMMY_1:
+		// rule 89: FactorTail --> MultiplyingOperator Factor FactorTail
+		case MP_TIMES:
+		case MP_AND:
+		case MP_DIV:
+		case MP_MOD:
 			multiplyingOperator();
 			factor();
 			factorTail();
 			break;
-		// FactorTail --> epsilon
-		case DUMMY_2:
+		// rule 90: FactorTail --> epsilon
+		case MP_COMMA:
+		case MP_SCOLON:
+		case MP_RPAREN:
+		case MP_EQUAL:
+		case MP_LTHAN:
+		case MP_GTHAN:
+		case MP_LEQUAL:
+		case MP_GEQUAL:
+		case MP_NEQUAL:
+		case MP_PLUS:
+		case MP_MINUS:
+		case MP_DO:
+		case MP_DOWNTO:
+		case MP_ELSE:
+		case MP_END:
+		case MP_OR:
+		case MP_THEN:
+		case MP_TO:
+		case MP_UNTIL:
 			break;
 		default:
-			error("FactorTail not implemented yet.");
+			syntaxError("'*', 'and', '/', '%', or something else");
 			break;
 		}
 	}
@@ -1237,24 +1310,24 @@ public class MPparser {
 	 */
 	private void multiplyingOperator() {
 		switch (lookahead.getToken()) {
-		// MultiplyingOperator --> "*"
-		case DUMMY_1:
+		// rule 91: MultiplyingOperator --> "*"
+		case MP_TIMES:
 			match(Token.TokenName.MP_TIMES);
 			break;
-		// MultiplyingOperator --> "div"
-		case DUMMY_2:
+		// rule 92: MultiplyingOperator --> "div"
+		case MP_DIV:
 			match(Token.TokenName.MP_DIV);
 			break;
-		// MultiplyingOperator --> "mod"
-		case DUMMY_3:
+		// rule 93: MultiplyingOperator --> "mod"
+		case MP_MOD:
 			match(Token.TokenName.MP_MOD);
 			break;
-		// MultiplyingOperator --> "and"
-		case DUMMY_4:
+		// rule 94: MultiplyingOperator --> "and"
+		case MP_AND:
 			match(Token.TokenName.MP_AND);
 			break;
 		default:
-			error("MultiplyingOperator not implemented yet.");
+			syntaxError("'*', 'and', '/', or '%'");
 			break;
 		}
 	}
@@ -1265,6 +1338,8 @@ public class MPparser {
 	 */
 	private void factor() {
 		switch (lookahead.getToken()) {
+		// TODO: there is an conflict here between matching VariableIdentifier
+		// and FunctionIdentifier.
 		// Factor --> UnsignedInteger
 		case DUMMY_1:
 			match(Token.TokenName.MP_INTEGER_LIT);
