@@ -15,6 +15,7 @@ public class MPparser {
 		try {
 			scanner.openFile(filename);
 			lookahead = scanner.getToken();
+			checkForScannerErrors(lookahead);
 		} catch (FileNotFoundException e) {
 			System.err.println("Error: File " + filename + " not found");
 			System.exit(1);
@@ -45,6 +46,7 @@ public class MPparser {
 		} else {
 			try {
 				lookahead = scanner.getToken();
+				checkForScannerErrors(lookahead);
 			} catch (IOException ioe) {
 				System.err.println("Error: Cannot read input file");
 			}
@@ -57,10 +59,23 @@ public class MPparser {
 			return secondLookahead;
 		try {
 			secondLookahead = scanner.getToken();
+			checkForScannerErrors(secondLookahead);
 		} catch (IOException ioe) {
 			System.err.println("Error: Cannot read input file");
 		}
 		return secondLookahead;
+	}
+
+	private void checkForScannerErrors(Token t) {
+		if (t == null)
+			return;
+		if (t.getToken() == Token.TokenName.MP_ERROR) {
+			error(scanner.getError(t, "Error: Scanner error"));
+		} else if (t.getToken() == Token.TokenName.MP_RUN_COMMENT) {
+			error(scanner.getError(t, "Error: Unterminated comment"));
+		} else if (t.getToken() == Token.TokenName.MP_RUN_STRING) {
+			error(scanner.getError(t, "Error: Unterminated string"));
+		}
 	}
 
 	private void error(String message) {

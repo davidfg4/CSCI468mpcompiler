@@ -323,7 +323,10 @@ class MPscanner {
 	}
 	
 	private String getLine(int l) {
-		return lines.get(l);
+		if (l > lines.size()-1)
+			return "<end of file>";
+		else
+			return lines.get(l);
 	}
 	
 	private Token returnToken(Token.TokenName tokenName) {
