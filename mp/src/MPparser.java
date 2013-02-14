@@ -1,34 +1,88 @@
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 public class MPparser {
 
 	private Token lookahead;
 	private MPscanner scanner;
+	static PrintWriter pw = null;
 	
 	//TODO: add rule numbers to each case comment
 
-	public MPparser(MPscanner scanner) {
-		this.scanner = scanner;
+	public MPparser(String filename) {
+		MPscanner scanner = new MPscanner();
+		try {
+			scanner.openFile(filename);
+			lookahead = scanner.getToken();
+		} catch (FileNotFoundException e) {
+			printErr("Error: File " + filename + " not found");
+			System.exit(1);
+		} catch (IOException ioe) {
+			printErr("Error: can't read the first char of " + filename);
+			System.exit(1);
+		}
+		systemGoal();
+		if (pw != null)
+			pw.close();
+	}
+
+	public static void main(String args[]) {
+		if (args.length < 1) {
+			System.out.println("This program requires one argument, the file to be scanned.");
+			System.exit(1);
+		} else {
+			new MPparser(args[0]);
+		}
+	}
+
+	public static void print(String s) {
+		print(s, true, true);
 	}
 	
-	private boolean match(Token.TokenName token) {
+	public static void print(String s, boolean screen, boolean file) {
+		if (file && pw == null) {
+			String tokenFileName = "token_file.txt";
+			File tokenFile = new File(tokenFileName);
+			try {
+				pw = new PrintWriter(tokenFile);
+			} catch (FileNotFoundException e) {
+				printErr("Error: cannot write to token file");
+				System.exit(1);
+			}
+		}
+		if (screen)
+			System.out.println(s);
+		if (file)
+			pw.print(s + '\n');
+	}
+
+	public static void printErr(String s) {
+		System.err.println(s);
+	}
+
+	private static String pad(String s, int n) {
+		return String.format("%1$-" + n + "s", s);
+	}
+
+	private void match(Token.TokenName token) {
+		if (lookahead.getToken() != token)
+			syntaxError();
 		try {
 			lookahead = scanner.getToken();
 		} catch (IOException ioe) {
 			System.err.println("Error: Cannot read input file");
 		}
-		if (lookahead.getToken() == token)
-			return true;
-		return false;
 	}
 
 	private void error(String message) {
 		System.err.println(message);
 		System.exit(1);
 	}
-	
+
 	private void syntaxError() {
-		scanner.getError(lookahead, "Syntax Error");
+		System.out.println(scanner.getError(lookahead, "Syntax Error"));
 		System.exit(1);
 	}
 
@@ -38,7 +92,7 @@ public class MPparser {
 	 */
 	private void systemGoal() {
 		switch (lookahead.getToken()) {
-		// SystemGoal --> Program eof
+		// rule 1: SystemGoal --> Program eof
 		case MP_PROGRAM:
 			program();
 			match(Token.TokenName.MP_EOF);
@@ -55,7 +109,7 @@ public class MPparser {
 	 */
 	private void program() {
 		switch (lookahead.getToken()) {
-		// Program --> ProgramHeading ";" Block "."
+		// rule 2: Program --> ProgramHeading ";" Block "."
 		case MP_PROGRAM:
 			programHeading();
 			match(Token.TokenName.MP_SCOLON);
