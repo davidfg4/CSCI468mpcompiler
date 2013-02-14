@@ -25,7 +25,7 @@ public class MPparser {
 			System.exit(1);
 		}
 		systemGoal();
-		System.out.println("Sucesuflly parsed! No scanner or parser errors found.");
+		System.out.println("Successfully parsed! No scanner or parser errors found.");
 	}
 
 	public static void main(String args[]) {
@@ -52,7 +52,7 @@ public class MPparser {
 			}
 		}
 	}
-	
+
 	private Token getSecondLookahead()
 	{
 		if (secondLookahead != null)
