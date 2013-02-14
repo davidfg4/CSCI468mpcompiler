@@ -37,7 +37,7 @@ class MPscanner {
 				line = reader.readLine();
 			}
 		} catch (IOException e) {
-			MP.printErr("Error: could not read " + filename);
+			System.err.println("Error: could not read " + filename);
 			System.exit(1);
 		}
 		// reset the file reader to the start
@@ -147,7 +147,7 @@ class MPscanner {
 				lexeme = new StringBuilder(lexeme.toString().split("\n")[0]);
 				return returnToken(Token.TokenName.MP_RUN_COMMENT);	// comment not closed before EOF
 			} else if (ch == '{') {
-				MP.printErr(getError(filename, lineNumber, columnNumber, "Warning: Comment started within comment"));
+				System.err.println(getError(filename, lineNumber, columnNumber, "Warning: Comment started within comment"));
 			}
 			ch = getNextChar();
 		}
@@ -293,7 +293,7 @@ class MPscanner {
 		try {
 			reader.mark(512);
 		} catch (IOException e) {
-			MP.printErr("Error: Failed to mark reader");
+			System.err.println("Error: Failed to mark reader");
 			System.exit(1);
 		}
 	}
@@ -305,7 +305,7 @@ class MPscanner {
 		try {
 			reader.reset();
 		} catch (IOException e) {
-			MP.printErr("Error: Failed to reset marker");
+			System.err.println("Error: Failed to reset marker");
 			System.exit(1);
 		}
 	}
