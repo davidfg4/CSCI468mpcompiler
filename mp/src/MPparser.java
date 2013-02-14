@@ -221,13 +221,13 @@ public class MPparser {
 	 */
 	private void variableDeclaration() {
 		switch (lookahead.getToken()) {
-		// VariableDeclaration --> IdentifierList ":" Type
-		case DUMMY_1:
+		// rule 9: VariableDeclaration --> IdentifierList ":" Type
+		case MP_IDENTIFIER:
 			identifierList();
 			match(Token.TokenName.MP_COLON);
 			type();
 		default:
-			error("VariableDeclaration not implemented yet.");
+			syntaxError("'identifier'");
 		}
 	}
 
@@ -237,20 +237,20 @@ public class MPparser {
 	 */
 	private void type() {
 		switch (lookahead.getToken()) {
-		// Type --> "Integer"
-		case DUMMY_1:
+		// rule 10: Type --> "Integer"
+		case MP_INTEGER:
 			match(Token.TokenName.MP_INTEGER);
 			break;
-		// Type --> "Float"
-		case DUMMY_2:
+		// rule 11: Type --> "Float"
+		case MP_FLOAT:
 			match(Token.TokenName.MP_FLOAT);
 			break;
-		// Type --> "Boolean"
-		case DUMMY_3:
+		// rule ?: Type --> "Boolean"
+		case MP_BOOLEAN:
 			match(Token.TokenName.MP_BOOLEAN);
 			break;
 		default:
-			error("Type not implemented yet.");
+			syntaxError("variable type, 'integer', 'float', or 'boolean'");
 			break;
 		}
 	}
@@ -285,15 +285,15 @@ public class MPparser {
 	 */
 	private void procedureDeclaration() {
 		switch (lookahead.getToken()) {
-		// ProcedureDeclaration --> ProcedureHeading ";" Block ";" 
-		case DUMMY_1:
+		// rule 15: ProcedureDeclaration --> ProcedureHeading ";" Block ";" 
+		case MP_PROCEDURE:
 			procedureHeading();
 			match(Token.TokenName.MP_SCOLON);
 			block();
 			match(Token.TokenName.MP_SCOLON);
 			break;
 		default:
-			error("ProcedureDeclaration not implemented yet.");
+			syntaxError("'procedure'");
 		}
 	}
 
@@ -303,15 +303,15 @@ public class MPparser {
 	 */
 	private void functionDeclaration() {
 		switch (lookahead.getToken()) {
-		// FunctionDeclaration --> FunctionHeading ";" Block ";"
-		case DUMMY_1:
+		// rule 16: FunctionDeclaration --> FunctionHeading ";" Block ";"
+		case MP_FUNCTION:
 			functionHeading();
 			match(Token.TokenName.MP_SCOLON);
 			block();
 			match(Token.TokenName.MP_SCOLON);
 			break;
 		default:
-			error("FunctionDeclaration not implemented yet.");
+			syntaxError("'function'");
 			break;
 		}
 	}
@@ -322,14 +322,14 @@ public class MPparser {
 	 */
 	private void procedureHeading() {
 		switch (lookahead.getToken()) {
-		// ProcedureHeading --> "procedure" ProcedureIdentifier OptionalFormalParameterList
-		case DUMMY_1:
+		// rule 17: ProcedureHeading --> "procedure" ProcedureIdentifier OptionalFormalParameterList
+		case MP_PROCEDURE:
 			match(Token.TokenName.MP_PROCEDURE);
 			procedureIdentifier();
 			optionalFormalParameterList();
 			break;
 		default:
-			error("ProcedureHeading not implemented yet.");
+			syntaxError("'procedure'");
 		}
 	}
 
@@ -339,8 +339,8 @@ public class MPparser {
 	 */
 	private void functionHeading() {
 		switch (lookahead.getToken()) {
-		// FunctionHeading --> "function" FunctionIdentifier OptionalFormalParameterList Type
-		case DUMMY_1:
+		// rule 18:FunctionHeading --> "function" FunctionIdentifier OptionalFormalParameterList Type
+		case MP_FUNCTION:
 			match(Token.TokenName.MP_FUNCTION);
 			functionIdentifier();
 			optionalFormalParameterList();
@@ -348,7 +348,7 @@ public class MPparser {
 			type();
 			break;
 		default:
-			error("FunctionHeading not implemented yet.");
+			syntaxError("'function'");
 			break;
 		}
 	}
@@ -359,18 +359,20 @@ public class MPparser {
 	 */
 	private void optionalFormalParameterList() {
 		switch (lookahead.getToken()) {
-		// OptionalFormalParameterList --> "(" FormalParameterSection FormalParameterSectionTail ")"
-		case DUMMY_1:
+		// rule 19: OptionalFormalParameterList --> "(" FormalParameterSection FormalParameterSectionTail ")"
+		case MP_RPAREN:
 			match(Token.TokenName.MP_RPAREN);
 			formalParameterSection();
 			formalParameterSectionTail();
 			match(Token.TokenName.MP_LPAREN);
 			break;
-		// OptionalFormalParameterList --> epsilon
-		case DUMMY_2:
+		// rule 20: OptionalFormalParameterList --> epsilon
+		case MP_FLOAT:
+		case MP_INTEGER:
+		case MP_BOOLEAN:
 			break;
 		default:
-			error("OptionalFormalParameterList not implemented yet.");
+			syntaxError("parameter list in parentheses or start of function");
 			break;
 		}
 	}
@@ -381,17 +383,17 @@ public class MPparser {
 	 */
 	private void formalParameterSectionTail() {
 		switch (lookahead.getToken()) {
-		// FormalParameterSectionTail --> ";" FormalParameterSection FormalParameterSectionTail
-		case DUMMY_1:
+		// rule 21: FormalParameterSectionTail --> ";" FormalParameterSection FormalParameterSectionTail
+		case MP_SCOLON:
 			match(Token.TokenName.MP_SCOLON);
 			formalParameterSection();
 			formalParameterSectionTail();
 			break;
-		// FormalParameterSectionTail --> epsilon
-		case DUMMY_2:
+		// rule 22: FormalParameterSectionTail --> epsilon
+		case MP_RPAREN:
 			break;
 		default:
-			error("FormalParameterSectionTail not implemented yet.");
+			syntaxError("';' or ')'");
 			break;
 		}
 	}
@@ -402,16 +404,16 @@ public class MPparser {
 	 */
 	private void formalParameterSection() {
 		switch (lookahead.getToken()) {
-		// FormalParameterSection --> ValueParameterSection
-		case DUMMY_1:
+		// rule 23: FormalParameterSection --> ValueParameterSection
+		case MP_IDENTIFIER:
 			valueParameterSection();
 			break;
-		// FormalParameterSection --> VariableParameterSection
-		case DUMMY_2:
+		// rule 24: FormalParameterSection --> VariableParameterSection
+		case MP_VAR:
 			variableParameterSection();
 			break;
 		default:
-			error("FormalParameterSection not implemented yet.");
+			syntaxError("'identifier' or 'var'");
 			break;
 		}
 	}
@@ -422,14 +424,14 @@ public class MPparser {
 	 */
 	private void valueParameterSection() {
 		switch (lookahead.getToken()) {
-		// ValueParameterSection --> IdentifierList ":" Type
-		case DUMMY_1:
+		// rule 25: ValueParameterSection --> IdentifierList ":" Type
+		case MP_IDENTIFIER:
 			identifierList();
 			match(Token.TokenName.MP_COLON);
 			type();
 			break;
 		default:
-			error("ValueParameterSection not implemented yet");
+			syntaxError("'identifier'");
 			break;
 		}
 	}
@@ -440,15 +442,15 @@ public class MPparser {
 	 */
 	private void variableParameterSection() {
 		switch (lookahead.getToken()) {
-		// VariableParameterSection --> "var" IdentifierList ":" Type
-		case DUMMY_1:
+		// rule 26: VariableParameterSection --> "var" IdentifierList ":" Type
+		case MP_VAR:
 			match(Token.TokenName.MP_VAR);
 			identifierList();
 			match(Token.TokenName.MP_COLON);
 			type();
 			break;
 		default:
-			error("VariableParameterSection not implemented yet");
+			syntaxError("'var'");
 			break;
 		}
 	}
@@ -1353,13 +1355,13 @@ public class MPparser {
 	 */
 	private void identifierList() {
 		switch (lookahead.getToken()) {
-		// IdentifierList --> Identifier IdentifierTail
-		case DUMMY_1:
+		// rule 106: IdentifierList --> Identifier IdentifierTail
+		case MP_IDENTIFIER:
 			match(Token.TokenName.MP_IDENTIFIER);
 			identifierTail();
 			break;
 		default:
-			error("IdentifierList not implemented yet.");
+			syntaxError("'identifier'");
 			break;
 		}
 	}
@@ -1370,17 +1372,17 @@ public class MPparser {
 	 */
 	private void identifierTail() {
 		switch (lookahead.getToken()) {
-		// IdentifierTail --> Identifier
-		case DUMMY_1:
+		// rule 107: IdentifierTail --> Identifier
+		case MP_COMMA:
 			match(Token.TokenName.MP_COMMA);
 			match(Token.TokenName.MP_IDENTIFIER);
 			identifierTail();
 			break;
-		// IdentifierTail --> epsilon
-		case DUMMY_2:
+		// rule 108: IdentifierTail --> epsilon
+		case MP_COLON:
 			break;
 		default:
-			error("IdentifierTail not implemented yet.");
+			syntaxError("',' and more identifiers, or ':' and a variable type");
 			break;
 		}
 	}
