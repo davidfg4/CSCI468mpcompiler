@@ -6,26 +6,26 @@ import java.io.PrintWriter;
 public class MPparser {
 
 	private Token lookahead;
+	private Token secondLookahead;
 	private MPscanner scanner;
-	static PrintWriter pw = null;
 	
 	//TODO: add rule numbers to each case comment
 
 	public MPparser(String filename) {
 		scanner = new MPscanner();
+		secondLookahead = null;
 		try {
 			scanner.openFile(filename);
 			lookahead = scanner.getToken();
 		} catch (FileNotFoundException e) {
-			printErr("Error: File " + filename + " not found");
+			System.err.println("Error: File " + filename + " not found");
 			System.exit(1);
 		} catch (IOException ioe) {
-			printErr("Error: can't read the first char of " + filename);
+			System.err.println("Error: can't read the first char of " + filename);
 			System.exit(1);
 		}
 		systemGoal();
-		if (pw != null)
-			pw.close();
+		System.out.println("Sucesuflly parsed! No scanner or parser errors found.");
 	}
 
 	public static void main(String args[]) {
@@ -37,39 +37,32 @@ public class MPparser {
 		}
 	}
 
-	public static void print(String s) {
-		print(s, true, true);
-	}
-	
-	public static void print(String s, boolean screen, boolean file) {
-		if (file && pw == null) {
-			String tokenFileName = "token_file.txt";
-			File tokenFile = new File(tokenFileName);
-			try {
-				pw = new PrintWriter(tokenFile);
-			} catch (FileNotFoundException e) {
-				printErr("Error: cannot write to token file");
-				System.exit(1);
-			}
-		}
-		if (screen)
-			System.out.println(s);
-		if (file)
-			pw.print(s + '\n');
-	}
-
-	public static void printErr(String s) {
-		System.err.println(s);
-	}
-
 	private void match(Token.TokenName token) {
 		if (lookahead.getToken() != token)
 			syntaxError("" + token);
+		if (secondLookahead != null)
+		{
+			lookahead = secondLookahead;
+			secondLookahead = null;
+		} else {
+			try {
+				lookahead = scanner.getToken();
+			} catch (IOException ioe) {
+				System.err.println("Error: Cannot read input file");
+			}
+		}
+	}
+	
+	private Token getSecondLookahead()
+	{
+		if (secondLookahead != null)
+			return secondLookahead;
 		try {
-			lookahead = scanner.getToken();
+			secondLookahead = scanner.getToken();
 		} catch (IOException ioe) {
 			System.err.println("Error: Cannot read input file");
 		}
+		return secondLookahead;
 	}
 
 	private void error(String message) {
@@ -536,48 +529,54 @@ public class MPparser {
 	 */
 	private void statement() {
 		switch (lookahead.getToken()) {
-		// Statement --> EmptyStatement
-		case DUMMY_1:
+		// rule 32: Statement --> EmptyStatement
+		case MP_SCOLON:
+		case MP_ELSE:
+		case MP_END:
+		case MP_UNTIL:
 			emptyStatement();
 			break;
-		// Statement --> CompoundStatement
-		case DUMMY_2:
+		// rules 33: Statement --> CompoundStatement
+		case MP_BEGIN:
 			compoundStatement();
 			break;
-		// Statement --> ReadStatement
-		case DUMMY_3:
+		// rule 34: Statement --> ReadStatement
+		case MP_READ:
 			readStatement();
 			break;
-		// Statement --> WriteStatement
-		case DUMMY_4:
+		// rule 35: Statement --> WriteStatement
+		case MP_WRITE:
 			writeStatement();
 			break;
-		// Statement --> AssignmentStatement
-		case DUMMY_5:
+		// rule 36: Statement --> AssignmentStatement
+		// rule 41: Statement --> ProcedureStatement
+		case MP_IDENTIFIER:
+			if (getSecondLookahead().getToken() == Token.TokenName.MP_ASSIGN)
+			{
+				assignmentStatement();
+			} else {
+				procedureStatement();
+			}
 			assignmentStatement();
 			break;
-		// Statement --> IfStatement
-		case DUMMY_6:
+		// rule 37: Statement --> IfStatement
+		case MP_IF:
 			ifStatement();
 			break;
-		// Statement --> WhileStatement
-		case DUMMY_7:
+		// rule 38: Statement --> WhileStatement
+		case MP_WHILE:
 			whileStatement();
 			break;
-		// Statement --> RepeatStatement
-		case DUMMY_8:
+		// rule 39: Statement --> RepeatStatement
+		case MP_REPEAT:
 			repeatStatement();
 			break;
-		// Statement --> ForStatement
-		case DUMMY_9:
+		// rule 40: Statement --> ForStatement
+		case MP_FOR:
 			forStatement();
 			break;
-		// Statement --> ProcedureStatement
-		case DUMMY_10:
-			procedureStatement();
-			break;
 		default:
-			error("Statement not implemented yet.");
+			syntaxError("statement");
 			break;
 		}
 	}
@@ -589,10 +588,13 @@ public class MPparser {
 	private void emptyStatement() {
 		switch (lookahead.getToken()) {
 		// EmptyStatement --> epsilon
-		case DUMMY_1:
+		case MP_SCOLON:
+		case MP_ELSE:
+		case MP_END:
+		case MP_UNTIL:
 			break;
 		default:
-			error("EmptyStatement not implemented yet.");
+			syntaxError("empty statement");
 			break;
 		}
 	}
