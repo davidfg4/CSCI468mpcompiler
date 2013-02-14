@@ -23,7 +23,13 @@ public class MPparser {
 	}
 
 	private void error(String message) {
-		System.out.println(message);
+		System.err.println(message);
+		System.exit(1);
+	}
+	
+	private void syntaxError() {
+		scanner.getError(lookahead, "Syntax Error");
+		System.exit(1);
 	}
 
 	/**
@@ -33,12 +39,12 @@ public class MPparser {
 	private void systemGoal() {
 		switch (lookahead.getToken()) {
 		// SystemGoal --> Program eof
-		case DUMMY_1:
+		case MP_PROGRAM:
 			program();
 			match(Token.TokenName.MP_EOF);
 			break;
 		default:
-			error("SystemGoal not implemented yet.");
+			syntaxError();
 			break;
 		}
 	}
@@ -50,14 +56,14 @@ public class MPparser {
 	private void program() {
 		switch (lookahead.getToken()) {
 		// Program --> ProgramHeading ";" Block "."
-		case DUMMY_1:
+		case MP_PROGRAM:
 			programHeading();
 			match(Token.TokenName.MP_SCOLON);
 			block();
 			match(Token.TokenName.MP_PERIOD);
 			break;
 		default:
-			error("Program not implemented yet.");
+			syntaxError();
 			break;
 		}
 
