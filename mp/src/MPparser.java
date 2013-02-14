@@ -12,7 +12,7 @@ public class MPparser {
 	//TODO: add rule numbers to each case comment
 
 	public MPparser(String filename) {
-		MPscanner scanner = new MPscanner();
+		scanner = new MPscanner();
 		try {
 			scanner.openFile(filename);
 			lookahead = scanner.getToken();
@@ -62,13 +62,9 @@ public class MPparser {
 		System.err.println(s);
 	}
 
-	private static String pad(String s, int n) {
-		return String.format("%1$-" + n + "s", s);
-	}
-
 	private void match(Token.TokenName token) {
 		if (lookahead.getToken() != token)
-			syntaxError();
+			syntaxError("" + token);
 		try {
 			lookahead = scanner.getToken();
 		} catch (IOException ioe) {
@@ -81,10 +77,15 @@ public class MPparser {
 		System.exit(1);
 	}
 
-	private void syntaxError() {
-		System.out.println(scanner.getError(lookahead, "Syntax Error"));
+	private void syntaxError(String expected) {
+		System.out.println(scanner.getError(lookahead, "Syntax Error: Expected " + expected));
 		System.exit(1);
 	}
+	
+	/***************************************************************************
+	 * NON-TERMINAL FUNCTIONS BELOW
+	 ***************************************************************************
+	 */
 
 	/**
 	 * Pre: SystemGoal is the leftmost nonterminal
@@ -98,7 +99,7 @@ public class MPparser {
 			match(Token.TokenName.MP_EOF);
 			break;
 		default:
-			syntaxError();
+			syntaxError("'program'");
 			break;
 		}
 	}
@@ -117,7 +118,7 @@ public class MPparser {
 			match(Token.TokenName.MP_PERIOD);
 			break;
 		default:
-			syntaxError();
+			syntaxError("'program'");
 			break;
 		}
 
@@ -129,13 +130,13 @@ public class MPparser {
 	 */
 	private void programHeading() {
 		switch (lookahead.getToken()) {
-		// ProgramHeading --> "program" ProgramIdentifier
-		case DUMMY_1:
+		// rule 3: ProgramHeading --> "program" ProgramIdentifier
+		case MP_PROGRAM:
 			match(Token.TokenName.MP_PROGRAM);
 			programIdentifier();
 			break;
 		default:
-			error("ProgramHeading not implemented yet.");
+			syntaxError("'program'");
 			break;
 		}
 	}
@@ -1219,12 +1220,12 @@ public class MPparser {
 	 */
 	private void programIdentifier() {
 		switch (lookahead.getToken()) {
-		// ProgramIdentifier --> Identifier
-		case DUMMY_1:
+		// rule 100: ProgramIdentifier --> Identifier
+		case MP_IDENTIFIER:
 			match(Token.TokenName.MP_IDENTIFIER);
 			break;
 		default:
-			error("ProgramIdentifier not implemented yet.");
+			syntaxError("an identifier");
 			break;
 		}
 	}
