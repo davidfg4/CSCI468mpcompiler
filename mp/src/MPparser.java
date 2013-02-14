@@ -255,21 +255,21 @@ public class MPparser {
 	 */
 	private void procedureAndFunctionDeclarationPart() {
 		switch (lookahead.getToken()) {
-		// ProcedureAndFunctionDeclarationPart --> ProcedureDeclaration ProcedureAndFunctionDeclarationPart 
-		case DUMMY_1:
+		// rule 12: ProcedureAndFunctionDeclarationPart --> ProcedureDeclaration ProcedureAndFunctionDeclarationPart 
+		case MP_PROCEDURE:
 			procedureDeclaration();
 			procedureAndFunctionDeclarationPart();
 			break;
-		// ProcedureAndFunctionDeclarationPart --> FunctionDeclaration ProcedureAndFunctionDeclarationPart
-		case DUMMY_2:
+		// rule 13: ProcedureAndFunctionDeclarationPart --> FunctionDeclaration ProcedureAndFunctionDeclarationPart
+		case MP_FUNCTION:
 			functionDeclaration();
 			procedureAndFunctionDeclarationPart();
 			break;
-		// ProcedureAndFunctionDeclarationPart --> epsilon
-		case DUMMY_3:
+		// rule 14: ProcedureAndFunctionDeclarationPart --> epsilon
+		case MP_BEGIN:
 			break;
 		default:
-			error("ProcedureAndFunctionDeclarationPart not implemented yet.");
+			syntaxError("'procedure', 'function', or 'begin'");
 		}
 	}
 
@@ -453,11 +453,12 @@ public class MPparser {
 	 */
 	private void statementPart() {
 		switch (lookahead.getToken()) {
-		// StatementPart --> CompoundStatement
-		case DUMMY_1:
+		// rule 27: StatementPart --> CompoundStatement
+		case MP_BEGIN:
 			compoundStatement();
 			break;
 		default:
+			syntaxError("'begin'");
 			break;
 		}
 	}
@@ -468,14 +469,14 @@ public class MPparser {
 	 */
 	private void compoundStatement() {
 		switch (lookahead.getToken()) {
-		// CompoundStatement --> "begin" StatementSequence "end"
-		case DUMMY_1:
+		// rules 28: CompoundStatement --> "begin" StatementSequence "end"
+		case MP_BEGIN:
 			match(Token.TokenName.MP_BEGIN);
 			statementSequence();
 			match(Token.TokenName.MP_END);
 			break;
 		default:
-			error("CompoundStatement not implemented yet.");
+			syntaxError("'begin'");
 			break;
 		}
 	}
@@ -486,13 +487,23 @@ public class MPparser {
 	 */
 	private void statementSequence() {
 		switch (lookahead.getToken()) {
-		// StatementSequence --> Statement StatementTail
-		case DUMMY_1:
+		// rule 29: StatementSequence --> Statement StatementTail
+		case MP_SCOLON:
+		case MP_BEGIN:
+		case MP_END:
+		case MP_FLOAT_LIT:
+		case MP_IDENTIFIER:
+		case MP_IF:
+		case MP_READ:
+		case MP_REPEAT:
+		case MP_UNTIL:
+		case MP_WHILE:
+		case MP_WRITE:
 			statement();
 			statementTail();
 			break;
 		default:
-			error("StatementSequence not implemented yet.");
+			syntaxError("start of statement sequence");
 			break;
 		}
 	}
@@ -503,17 +514,18 @@ public class MPparser {
 	 */
 	private void statementTail() {
 		switch (lookahead.getToken()) {
-		// StatementTail --> ";" Statement StatementTail
-		case DUMMY_1:
+		// rules 30: StatementTail --> ";" Statement StatementTail
+		case MP_SCOLON:
 			match(Token.TokenName.MP_SCOLON);
 			statement();
 			statementTail();
 			break;
-		// StatementTail --> epsilon
-		case DUMMY_2:
+		// rule 31: StatementTail --> epsilon
+		case MP_END:
+		case MP_UNTIL:
 			break;
 		default:
-			error("StatementTail not implemented yet.");
+			syntaxError("statement tail(';', 'end, 'until')");
 			break;
 		}
 	}
