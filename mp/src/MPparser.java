@@ -147,14 +147,17 @@ public class MPparser {
 	 */
 	private void block() {
 		switch (lookahead.getToken()) {
-		// Block --> VariableDeclarationPart ProcedureAndFunctionDeclarationPart StatementPart
-		case DUMMY_1:
+		// rule 4: Block --> VariableDeclarationPart ProcedureAndFunctionDeclarationPart StatementPart
+		case MP_BEGIN:
+		case MP_FUNCTION:
+		case MP_PROCEDURE:
+		case MP_VAR:
 			variableDeclarationPart();
 			procedureAndFunctionDeclarationPart();
 			statementPart();
 			break;
 		default:
-			error("Block not implemented yet.");
+			syntaxError("'begin', 'function', 'procedure', or 'var'");
 			break;
 		}
 	}
@@ -165,15 +168,20 @@ public class MPparser {
 	 */
 	private void variableDeclarationPart() {
 		switch (lookahead.getToken()) {
-		// VariableDeclarationPart --> "var" VariableDeclaration ";" VariableDeclarationTail
-		case DUMMY_1:
+		// rule 5: VariableDeclarationPart --> "var" VariableDeclaration ";" VariableDeclarationTail
+		case MP_VAR:
 			match(Token.TokenName.MP_VAR);
 			variableDeclaration();
 			match(Token.TokenName.MP_SCOLON);
 			variableDeclarationTail();
 			break;
+		// rule 6: VariableDeclarationPart  --> eplison
+		case MP_BEGIN:
+		case MP_FUNCTION:
+		case MP_PROCEDURE:
+			break;
 		default:
-			error("VariableDeclarationPart not implemented yet.");
+			syntaxError("start of variable declerations('var') or start of program('begin', 'frunction', 'procedure')");
 			break;
 		}
 	}
@@ -184,17 +192,19 @@ public class MPparser {
 	 */
 	private void variableDeclarationTail() {
 		switch (lookahead.getToken()) {
-		// VariableDeclarationTail --> VariableDeclaration ";" VariableDeclarationTail
-		case DUMMY_1:
+		// rule 7: VariableDeclarationTail --> VariableDeclaration ";" VariableDeclarationTail
+		case MP_IDENTIFIER:
 			variableDeclaration();
 			match(Token.TokenName.MP_SCOLON);
 			variableDeclarationTail();
 			break;
-		// VariableDeclarationTail --> epsilon
-		case DUMMY_2:
+		// rule 8: VariableDeclarationTail --> epsilon
+		case MP_BEGIN:
+		case MP_FUNCTION:
+		case MP_PROCEDURE:
 			break;
 		default:
-			error("VariableDeclarationTail not implemented yet.");
+			syntaxError("variable declerations('identifier') or start of program('begin', 'frunction', 'procedure')");
 			break;
 		}
 	}
