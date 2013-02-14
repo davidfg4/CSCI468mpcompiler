@@ -1381,7 +1381,7 @@ public class MPparser {
 			match(Token.TokenName.MP_IDENTIFIER);
 			break;
 		default:
-			syntaxError("an identifier");
+			syntaxError("a program identifier");
 			break;
 		}
 	}
@@ -1392,12 +1392,12 @@ public class MPparser {
 	 */
 	private void variableIdentifier() {
 		switch (lookahead.getToken()) {
-		// VariableIdentifier --> Identifier
-		case DUMMY_1:
+		// rule 1-1: VariableIdentifier --> Identifier
+		case MP_IDENTIFIER:
 			match(Token.TokenName.MP_IDENTIFIER);
 			break;
 		default:
-			error("VariableIdentifier not implemented yet.");
+			syntaxError("a variable identifier");
 			break;
 		}
 	}
@@ -1408,12 +1408,12 @@ public class MPparser {
 	 */
 	private void procedureIdentifier() {
 		switch (lookahead.getToken()) {
-		// ProcedureIdentifier --> Identifier
-		case DUMMY_1:
+		// rule 102: ProcedureIdentifier --> Identifier
+		case MP_IDENTIFIER:
 			match(Token.TokenName.MP_IDENTIFIER);
 			break;
 		default:
-			error("ProcedureIdentifier not implemented yet.");
+			syntaxError("a procedure identifier");
 			break;
 		}
 	}
@@ -1424,12 +1424,12 @@ public class MPparser {
 	 */
 	private void functionIdentifier() {
 		switch (lookahead.getToken()) {
-		// FunctionIdentifier --> Identifier
-		case DUMMY_1:
+		// rule 103: FunctionIdentifier --> Identifier
+		case MP_IDENTIFIER:
 			match(Token.TokenName.MP_IDENTIFIER);
 			break;
 		default:
-			error("FunctionIdentifier not implemented yet.");
+			syntaxError("a function identifier");
 			break;
 		}
 	}
@@ -1440,12 +1440,17 @@ public class MPparser {
 	 */
 	private void booleanExpression() {
 		switch (lookahead.getToken()) {
-		// BooleanExpression --> Expression
-		case DUMMY_1:
+		// rule 104: BooleanExpression --> Expression
+		case MP_LPAREN:
+		case MP_PLUS:
+		case MP_MINUS:
+		case MP_IDENTIFIER:
+		case MP_INTEGER_LIT:
+		case MP_NOT:
 			expression();
 			break;
 		default:
-			error("BooleanExpression not implemented yet.");
+			syntaxError("a boolean expression");
 			break;
 		}
 	}
@@ -1456,12 +1461,17 @@ public class MPparser {
 	 */
 	private void ordinalExpression() {
 		switch (lookahead.getToken()) {
-		// OrdinalExpression --> Expression
-		case DUMMY_1:
+		// rule 105: OrdinalExpression --> Expression
+		case MP_LPAREN:
+		case MP_PLUS:
+		case MP_MINUS:
+		case MP_IDENTIFIER:
+		case MP_INTEGER_LIT:
+		case MP_NOT:
 			expression();
 			break;
 		default:
-			error("OrdinalExpression not implemented yet.");
+			syntaxError("a ordianl expression");
 			break;
 		}
 	}
