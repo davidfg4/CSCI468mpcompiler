@@ -226,8 +226,10 @@ public class MPparser {
 			identifierList();
 			match(Token.TokenName.MP_COLON);
 			type();
+			break;
 		default:
 			syntaxError("'identifier'(1)");
+			break;
 		}
 	}
 
