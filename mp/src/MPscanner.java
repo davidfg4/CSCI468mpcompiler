@@ -60,7 +60,7 @@ class MPscanner {
 				return returnToken(Token.TokenName.MP_EOF);
 			}
 		}
-		else if (ch == '\n' || ch == '\r' || ch == ' ')
+		else if (ch == '\n' || ch == '\r' || ch == '\t' || ch == ' ')
 			return getToken();
 		else if (ch == '.')
 			return returnToken(Token.TokenName.MP_PERIOD);

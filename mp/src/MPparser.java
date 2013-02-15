@@ -572,7 +572,6 @@ public class MPparser {
 			} else {
 				procedureStatement();
 			}
-			assignmentStatement();
 			break;
 		// rule 37: Statement --> IfStatement
 		case MP_IF:
@@ -741,19 +740,19 @@ public class MPparser {
 		switch (lookahead.getToken()) {
 		// TODO: How do we determine which to do?
 		// rule 51: AssignmentStatement --> VariableIdentifier ":=" Expression
-		case DUMMY_1:
+		case MP_IDENTIFIER: // TODO: For now assume they are all variables. THIS IS WRONG.
 			variableIdentifier();
 			match(Token.TokenName.MP_ASSIGN);
 			expression();
 			break;
 		// rule 52: AssignmentStatement --> FunctionIdentifier ":=" Expression
-		case DUMMY_2:
+		case DUMMY_1:
 			functionIdentifier();
 			match(Token.TokenName.MP_ASSIGN);
 			expression();
 			break;
 		default:
-			error("AssignmentStatement not implemented yet");
+			syntaxError("a variable or function identifier");
 			break;
 		}
 	}
@@ -1010,7 +1009,7 @@ public class MPparser {
 			actualParameterTail();
 			break;
 		// rule 68: ActualParameterTail --> epsilon
-		case MP_SCOLON:
+		case MP_RPAREN:
 			break;
 		default:
 			syntaxError("another parameter (',') or the end of the parameter list (')')");
@@ -1341,31 +1340,31 @@ public class MPparser {
 		// TODO: there is an conflict here between matching VariableIdentifier
 		// and FunctionIdentifier.
 		// Factor --> UnsignedInteger
-		case DUMMY_1:
+		case MP_INTEGER_LIT:
 			match(Token.TokenName.MP_INTEGER_LIT);
 			break;
 		// Factor --> VariableIdentifier
-		case DUMMY_2:
+		case DUMMY_1:
 			variableIdentifier();
 			break;
 		// Factor --> "not" Factor
-		case DUMMY_3:
+		case MP_NOT:
 			match(Token.TokenName.MP_NOT);
 			factor();
 			break;
 		// Factor --> "(" Expression ")"
-		case DUMMY_4:
+		case MP_LPAREN:
 			match(Token.TokenName.MP_LPAREN);
 			expression();
 			match(Token.TokenName.MP_RPAREN);
 			break;
 		// Factor --> FunctionIdentifier OptionalActualParameterList
-		case DUMMY_5:
+		case MP_IDENTIFIER: // TODO: for now assume all identifiers are functions. THIS IS WRONG.
 			functionIdentifier();
 			optionalActualParameterList();
 			break;
 		default:
-			error("Factor not implemented yet.");
+			syntaxError("a factor");
 			break;
 		}
 	}
