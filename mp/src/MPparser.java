@@ -84,7 +84,7 @@ public class MPparser {
 	}
 
 	private void syntaxError(String expected) {
-		System.out.println(scanner.getError(lookahead, "Syntax Error: Expected " + expected));
+		System.out.println(scanner.getError(lookahead, "Syntax Error: Expected " + expected + ", got " + lookahead.getToken()));
 		System.exit(1);
 	}
 	
@@ -227,7 +227,7 @@ public class MPparser {
 			match(Token.TokenName.MP_COLON);
 			type();
 		default:
-			syntaxError("'identifier'");
+			syntaxError("'identifier'(1)");
 		}
 	}
 
@@ -431,7 +431,7 @@ public class MPparser {
 			type();
 			break;
 		default:
-			syntaxError("'identifier'");
+			syntaxError("'identifier'(2)");
 			break;
 		}
 	}
@@ -665,7 +665,7 @@ public class MPparser {
 			variableIdentifier();
 			break;
 		default: 
-			syntaxError("'identifier'");
+			syntaxError("'identifier'(3)");
 			break;
 		}
 	}
@@ -869,7 +869,7 @@ public class MPparser {
 			variableIdentifier();
 			break;
 		default:
-			syntaxError("'identifier'");
+			syntaxError("'identifier'(4)");
 			break;
 		}
 	}
@@ -1487,7 +1487,7 @@ public class MPparser {
 			identifierTail();
 			break;
 		default:
-			syntaxError("'identifier'");
+			syntaxError("'identifier'(5)");
 			break;
 		}
 	}
