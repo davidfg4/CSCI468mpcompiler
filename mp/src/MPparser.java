@@ -187,7 +187,7 @@ public class MPparser {
 		case MP_PROCEDURE:
 			break;
 		default:
-			syntaxError("start of variable declerations('var') or start of program('begin', 'frunction', 'procedure')");
+			syntaxError("start of variable declerations('var') or start of program('begin', 'function', 'procedure')");
 			break;
 		}
 	}
@@ -793,7 +793,7 @@ public class MPparser {
 		case MP_UNTIL:
 			break;
 		default:
-			error("OptionalElsePart not implemented yet.");
+			syntaxError("'else' or end of statement");
 			break;
 		}
 	}
