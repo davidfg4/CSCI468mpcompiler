@@ -70,11 +70,11 @@ public class MPparser {
 		if (t == null)
 			return;
 		if (t.getToken() == Token.TokenName.MP_ERROR) {
-			error(scanner.getError(t, "Error: Scanner error"));
+			System.err.println(scanner.getError(t, "Error: Scanner error"));
 		} else if (t.getToken() == Token.TokenName.MP_RUN_COMMENT) {
-			error(scanner.getError(t, "Error: Unterminated comment"));
+			System.err.println(scanner.getError(t, "Error: Unterminated comment"));
 		} else if (t.getToken() == Token.TokenName.MP_RUN_STRING) {
-			error(scanner.getError(t, "Error: Unterminated string"));
+			System.err.println(scanner.getError(t, "Error: Unterminated string"));
 		}
 	}
 
