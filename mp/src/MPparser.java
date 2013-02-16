@@ -1,6 +1,3 @@
-import java.io.FileNotFoundException;
-import java.io.IOException;
-
 public class MPparser {
 
 	private Token lookahead;
@@ -12,17 +9,9 @@ public class MPparser {
 	public MPparser(String filename) {
 		scanner = new MPscanner();
 		secondLookahead = null;
-		try {
-			scanner.openFile(filename);
-			lookahead = scanner.getToken();
-			checkForScannerErrors(lookahead);
-		} catch (FileNotFoundException e) {
-			System.err.println("Error: File " + filename + " not found");
-			System.exit(1);
-		} catch (IOException ioe) {
-			System.err.println("Error: can't read the first char of " + filename);
-			System.exit(1);
-		}
+		scanner.openFile(filename);
+		lookahead = scanner.getToken();
+		checkForScannerErrors(lookahead);
 		systemGoal();
 		System.out.println("Successfully parsed! No scanner or parser errors found.");
 	}
@@ -39,17 +28,12 @@ public class MPparser {
 	private void match(Token.TokenName token) {
 		if (lookahead.getToken() != token)
 			syntaxError("" + token);
-		if (secondLookahead != null)
-		{
+		if (secondLookahead != null) {
 			lookahead = secondLookahead;
 			secondLookahead = null;
 		} else {
-			try {
-				lookahead = scanner.getToken();
-				checkForScannerErrors(lookahead);
-			} catch (IOException ioe) {
-				System.err.println("Error: Cannot read input file");
-			}
+			lookahead = scanner.getToken();
+			checkForScannerErrors(lookahead);
 		}
 	}
 
@@ -57,12 +41,8 @@ public class MPparser {
 	{
 		if (secondLookahead != null)
 			return secondLookahead;
-		try {
-			secondLookahead = scanner.getToken();
-			checkForScannerErrors(secondLookahead);
-		} catch (IOException ioe) {
-			System.err.println("Error: Cannot read input file");
-		}
+		secondLookahead = scanner.getToken();
+		checkForScannerErrors(secondLookahead);
 		return secondLookahead;
 	}
 

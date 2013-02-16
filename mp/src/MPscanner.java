@@ -23,10 +23,10 @@ class MPscanner {
 		
 	}
 
-	public boolean openFile(String filename) throws FileNotFoundException {
+	public boolean openFile(String filename) {
 		this.filename = filename;
 		// read in all the lines so we know them beforehand for error reporting
-		FileReader fr = new FileReader(filename);
+		FileReader fr = openFileReader(filename);
 		reader = new BufferedReader(fr);
 		String line;
 		lines.add(0, "");
@@ -41,12 +41,23 @@ class MPscanner {
 			System.exit(1);
 		}
 		// reset the file reader to the start
-		fr = new FileReader(filename);
+		fr = openFileReader(filename);
 		reader = new BufferedReader(fr);
 		return true;
 	}
 	
-	public Token getToken() throws IOException {
+	public FileReader openFileReader(String filename) {
+		FileReader fr = null;
+		try {
+			fr = new FileReader(filename);
+		} catch (FileNotFoundException e) {
+			System.err.println("Error: File " + filename + " not found");
+			System.exit(1);
+		}
+		return fr;
+	}
+	
+	public Token getToken() {
 		lexeme = new StringBuilder();
 		tokenStartLine = lineNumber;
 		tokenStartColumn = columnNumber;
@@ -137,7 +148,7 @@ class MPscanner {
 			return returnToken(Token.TokenName.MP_ERROR);
 	}
 
-	private Token ignoreComment() throws IOException {
+	private Token ignoreComment() {
 		markBuffer();
 		char ch = getNextChar();
 		while(ch != '}') {
@@ -154,7 +165,7 @@ class MPscanner {
 		return getToken();	// ignore comment
 	}
 	
-	private Token findIdentifier() throws IOException {
+	private Token findIdentifier() {
 		markBuffer();
 		char ch = getNextChar();
 		if (ch == '_') {
@@ -172,7 +183,7 @@ class MPscanner {
 			return returnToken(Token.TokenName.MP_IDENTIFIER);
 	}
 	
-	private Token findInteger() throws IOException {
+	private Token findInteger() {
 		markBuffer();
 		char ch = getNextChar();
 		if(isNumber(ch))
@@ -201,7 +212,7 @@ class MPscanner {
 		}
 	}
 	
-	private Token findFixed() throws IOException {
+	private Token findFixed() {
 		markBuffer();
 		char ch = getNextChar();
 		if(isNumber(ch))
@@ -221,7 +232,7 @@ class MPscanner {
 		}
 	}
 	
-	private Token findFloat() throws IOException {
+	private Token findFloat() {
 		markBuffer();
 		char ch = getNextChar();
 		if(isNumber(ch))
@@ -232,7 +243,7 @@ class MPscanner {
 		}
 	}
 	
-	private Token findString() throws IOException {
+	private Token findString() {
 		char ch = getNextChar();
 		if (ch == '\'') {
 			markBuffer();
@@ -269,8 +280,14 @@ class MPscanner {
 		return false;
 	}
 	
-	private char getNextChar() throws IOException {
-		char ch = (char) reader.read();
+	private char getNextChar() {
+		char ch = ' ';
+		try {
+			ch = (char) reader.read();
+		} catch (IOException e) {
+			System.err.println("Error: can't read the first char of " + filename);
+			System.exit(1);
+		}
 		if (ch == (char) -1)
 			ch = (char) 4;
 		else
