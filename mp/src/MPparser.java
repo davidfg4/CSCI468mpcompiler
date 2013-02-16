@@ -362,16 +362,15 @@ public class MPparser {
 	private void optionalFormalParameterList() {
 		switch (lookahead.getToken()) {
 		// rule 19: OptionalFormalParameterList --> "(" FormalParameterSection FormalParameterSectionTail ")"
-		case MP_RPAREN:
-			match(Token.TokenName.MP_RPAREN);
+		case MP_LPAREN:
+			match(Token.TokenName.MP_LPAREN);
 			formalParameterSection();
 			formalParameterSectionTail();
-			match(Token.TokenName.MP_LPAREN);
+			match(Token.TokenName.MP_RPAREN);
 			break;
 		// rule 20: OptionalFormalParameterList --> epsilon
-		case MP_FLOAT:
-		case MP_INTEGER:
-		case MP_BOOLEAN:
+		case MP_SCOLON:
+		case MP_COLON:
 			break;
 		default:
 			syntaxError("parameter list in parentheses or start of function");
