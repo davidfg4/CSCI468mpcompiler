@@ -78,16 +78,11 @@ public class MPparser {
 		}
 	}
 
-	private void error(String message) {
-		System.err.println(message);
-		System.exit(1);
-	}
-
 	private void syntaxError(String expected) {
 		System.out.println(scanner.getError(lookahead, "Syntax Error: Expected " + expected + ", got " + lookahead.getToken()));
 		System.exit(1);
 	}
-	
+
 	/***************************************************************************
 	 * NON-TERMINAL FUNCTIONS BELOW
 	 ***************************************************************************
