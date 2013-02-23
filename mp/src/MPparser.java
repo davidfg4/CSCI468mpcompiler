@@ -748,7 +748,7 @@ public class MPparser {
 			optionalElsePart();
 			break;
 		default:
-			syntaxError("'if");
+			syntaxError("'if'");
 			break;
 		}
 	}
