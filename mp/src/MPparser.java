@@ -27,7 +27,7 @@ public class MPparser {
 
 	private void match(Token.TokenName token) {
 		if (lookahead.getToken() != token)
-			syntaxError("" + token);
+			syntaxError(Token.getReverseReservedWord(token));
 		if (secondLookahead != null) {
 			lookahead = secondLookahead;
 			secondLookahead = null;
@@ -59,7 +59,8 @@ public class MPparser {
 	}
 
 	private void syntaxError(String expected) {
-		System.out.println(scanner.getError(lookahead, "Syntax Error: Expected " + expected + ", got " + lookahead.getToken()));
+		System.out.println(scanner.getError(lookahead, "Syntax Error: Expected " +
+				expected + ", got '" + lookahead.getLexeme() + "' instead"));
 		System.exit(1);
 	}
 

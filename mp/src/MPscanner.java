@@ -329,7 +329,7 @@ class MPscanner {
 		String error = "  File \"" + filename + "\", line " + line + ":\n";
 		error += "    " + getLine(line) + "\n";
 		error += String.format("    %1$" + (col+1) + "s", "^\n");
-		error += errorName + " at column " + col;
+		error += errorName;
 		return error;
 	}
 	

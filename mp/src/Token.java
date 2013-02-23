@@ -1,6 +1,7 @@
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class Token {
 	public enum TokenName {
@@ -57,20 +58,61 @@ public class Token {
 		tempMap.put("write", TokenName.MP_WRITE);
 		ReservedWords = Collections.unmodifiableMap(tempMap);
 	}
+	
+	private static Map<TokenName, String> reverseReservedWords = null;
 
 	private TokenName token;
 	private int line, column;
 	private String lexeme;
 	
 	Token(TokenName t, int l, int c, String lex) {
+		if (reverseReservedWords == null)
+			createReverseReservedWords();
 		token = t;
 		line = l;
 		column = c;
 		lexeme = lex;
 	}
 	
+	private static void createReverseReservedWords() {
+		 Set<Map.Entry<String, TokenName>> reservedWordsSet = ReservedWords.entrySet();
+		 reverseReservedWords = new HashMap<TokenName, String>();
+		 for (Map.Entry<String, TokenName> entry : reservedWordsSet)
+		 {
+			 reverseReservedWords.put(entry.getValue(), "'" + entry.getKey() + "'");
+		 }
+		 reverseReservedWords.put(TokenName.MP_IDENTIFIER, "an identifier");
+		 reverseReservedWords.put(TokenName.MP_INTEGER_LIT, "an integer");
+		 reverseReservedWords.put(TokenName.MP_FIXED_LIT, "a fixed number");
+		 reverseReservedWords.put(TokenName.MP_FLOAT_LIT, "a float");
+		 reverseReservedWords.put(TokenName.MP_STRING_LIT, "a string");
+		 reverseReservedWords.put(TokenName.MP_PERIOD, "'.'");
+		 reverseReservedWords.put(TokenName.MP_COMMA, "','");
+		 reverseReservedWords.put(TokenName.MP_SCOLON, "';'");
+		 reverseReservedWords.put(TokenName.MP_LPAREN, "'('");
+		 reverseReservedWords.put(TokenName.MP_RPAREN, "')'");
+		 reverseReservedWords.put(TokenName.MP_EQUAL, "'='");
+		 reverseReservedWords.put(TokenName.MP_GTHAN, "'>'");
+		 reverseReservedWords.put(TokenName.MP_GEQUAL, "'>='");
+		 reverseReservedWords.put(TokenName.MP_LTHAN, "'<'");
+		 reverseReservedWords.put(TokenName.MP_LEQUAL, "'<='");
+		 reverseReservedWords.put(TokenName.MP_NEQUAL, "'<>'");
+		 reverseReservedWords.put(TokenName.MP_ASSIGN, "':='");
+		 reverseReservedWords.put(TokenName.MP_PLUS, "'+'");
+		 reverseReservedWords.put(TokenName.MP_MINUS, "'-'");
+		 reverseReservedWords.put(TokenName.MP_TIMES, "'*'");
+		 reverseReservedWords.put(TokenName.MP_COLON, "':'");
+		 reverseReservedWords.put(TokenName.MP_EOF, "end of file");
+	}
+	
 	public static TokenName getReservedWord(String s) {
 		return ReservedWords.get(s.toLowerCase());
+	}
+	
+	public static String getReverseReservedWord(TokenName t) {
+		if (reverseReservedWords == null)
+			return "";
+		return reverseReservedWords.get(t);
 	}
 	
 	public TokenName getToken() {
