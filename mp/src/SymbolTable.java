@@ -9,8 +9,11 @@ public class SymbolTable {
 		symbolTables = new LinkedList<SubSymbolTable<String,Symbol>>();
 	}
 	
-	public void insertSymbol(Symbol s) {
+	public void insertSymbol(Symbol s) throws SymbolAlreadyExistsException {
 		try {
+			if (symbolTables.getFirst().get(s.lexeme) != null) {
+				throw new SymbolAlreadyExistsException("Error: Symbol '" + s.lexeme + "' already exists in the current scope");
+			}
 			symbolTables.getFirst().put(s.lexeme, s);
 		} catch (NoSuchElementException e) {
 			System.err.println("Error: No symbol table to insert into. Try createSymbolTable()");
@@ -64,19 +67,24 @@ public class SymbolTable {
 	// For testing purposes only
 	public static void main(String[] args) {
 		SymbolTable testTable = new SymbolTable();
-		testTable.createSymbolTable("main");
-		testTable.insertSymbol(new Symbol("x"));
-		testTable.insertSymbol(new Symbol("y"));
-		testTable.insertSymbol(new Symbol("z"));
-		testTable.createSymbolTable("fred");
-		testTable.insertSymbol(new Symbol("a"));
-		testTable.insertSymbol(new Symbol("b"));
-		testTable.insertSymbol(new Symbol("c"));
-		testTable.deleteSymbolTable();
-		testTable.createSymbolTable("mary");
-		testTable.insertSymbol(new Symbol("d"));
-		testTable.insertSymbol(new Symbol("e"));
-		testTable.insertSymbol(new Symbol("f"));
+		try {
+			testTable.createSymbolTable("main");
+			testTable.insertSymbol(new Symbol("x"));
+			testTable.insertSymbol(new Symbol("y"));
+			testTable.insertSymbol(new Symbol("z"));
+			testTable.createSymbolTable("fred");
+			testTable.insertSymbol(new Symbol("a"));
+			testTable.insertSymbol(new Symbol("b"));
+			testTable.insertSymbol(new Symbol("c"));
+			testTable.deleteSymbolTable();
+			testTable.createSymbolTable("mary");
+			testTable.insertSymbol(new Symbol("d"));
+			testTable.insertSymbol(new Symbol("e"));
+			testTable.insertSymbol(new Symbol("f"));
+		} catch (SymbolAlreadyExistsException e) {
+			System.err.println(e.getMessage());
+			System.exit(1);
+		}
 		System.out.println(testTable);
 		System.out.println(testTable.findSymbol("d"));
 		System.out.println(testTable.findSymbol("x"));
@@ -88,6 +96,13 @@ public class SymbolTable {
 		SubSymbolTable(String n) {
 			super();
 			name = n;
+		}
+	}
+	
+	@SuppressWarnings("serial")
+	public class SymbolAlreadyExistsException extends Exception {
+		SymbolAlreadyExistsException(String s) {
+			super(s);
 		}
 	}
 }
