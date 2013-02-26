@@ -6,7 +6,7 @@ public class Symbol {
 		lexeme = l;
 	}
 	
-	public int hashCode() {
-		return lexeme.hashCode();
+	public String toString() {
+		return lexeme + " - more info here";
 	}
 }
