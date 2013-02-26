@@ -1,14 +1,14 @@
 import java.util.HashSet;
 import java.util.LinkedList;
 
-public class symbolTable {
-	private LinkedList<HashSet<symbol>> symbolTables;
+public class SymbolTable {
+	private LinkedList<HashSet<Symbol>> symbolTables;
 	
-	symbolTable() {
-		symbolTables = new LinkedList<HashSet<symbol>>();
+	SymbolTable() {
+		symbolTables = new LinkedList<HashSet<Symbol>>();
 	}
 	
-	public void insertSymbol(symbol s) {
+	public void insertSymbol(Symbol s) {
 		
 	}
 	
@@ -17,7 +17,7 @@ public class symbolTable {
 	}
 	
 	public void createSymbolTable() {
-		symbolTables.add(0, new HashSet<symbol>());
+		symbolTables.add(0, new HashSet<Symbol>());
 	}
 	
 	public boolean deleteSymbolTable() {

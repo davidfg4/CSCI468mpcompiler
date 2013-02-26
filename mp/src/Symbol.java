@@ -1,8 +1,8 @@
-public class symbol {
+public class Symbol {
 	public String lexeme;
 	// also needs type(as an enum(int, float, etc), address
 	
-	symbol(String l) {
+	Symbol(String l) {
 		lexeme = l;
 	}
 	
