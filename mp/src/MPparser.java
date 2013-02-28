@@ -3,15 +3,18 @@ public class MPparser {
 	private Token lookahead;
 	private Token secondLookahead;
 	private MPscanner scanner;
+	private SymbolTable symbolTable;
 	
 	//TODO: add rule numbers to each case comment
 
 	public MPparser(String filename) {
 		scanner = new MPscanner();
+		symbolTable = new SymbolTable();
 		secondLookahead = null;
 		scanner.openFile(filename);
 		lookahead = scanner.getToken();
 		checkForScannerErrors(lookahead);
+		symbolTable.createSymbolTable("main");
 		systemGoal();
 		System.out.println("Successfully parsed! No scanner or parser errors found.");
 	}
