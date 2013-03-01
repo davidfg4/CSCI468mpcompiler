@@ -30,7 +30,7 @@ public class MPparser {
 
 	private void match(Token.TokenName token) {
 		if (lookahead.getToken() != token)
-			syntaxError(Token.getReverseReservedWord(token));
+			syntaxErrorExpected(Token.getReverseReservedWord(token));
 		if (secondLookahead != null) {
 			lookahead = secondLookahead;
 			secondLookahead = null;
@@ -61,10 +61,15 @@ public class MPparser {
 		}
 	}
 
-	private void syntaxError(String expected) {
+	private void syntaxErrorExpected(String expected) {
 		System.out.println(scanner.getError(lookahead, "Syntax Error: Expected " +
 				expected + ", got '" + lookahead.getLexeme() + "' instead"));
 		System.exit(1);
+	}
+	
+	private void syntaxErrorGeneric(String error)
+	{
+		System.out.println(error);
 	}
 
 	/***************************************************************************
@@ -84,7 +89,7 @@ public class MPparser {
 			match(Token.TokenName.MP_EOF);
 			break;
 		default:
-			syntaxError("'program'");
+			syntaxErrorExpected("'program'");
 			break;
 		}
 	}
@@ -103,7 +108,7 @@ public class MPparser {
 			match(Token.TokenName.MP_PERIOD);
 			break;
 		default:
-			syntaxError("'program'");
+			syntaxErrorExpected("'program'");
 			break;
 		}
 
@@ -121,7 +126,7 @@ public class MPparser {
 			programIdentifier();
 			break;
 		default:
-			syntaxError("'program'");
+			syntaxErrorExpected("'program'");
 			break;
 		}
 	}
@@ -142,7 +147,7 @@ public class MPparser {
 			statementPart();
 			break;
 		default:
-			syntaxError("'begin', 'function', 'procedure', or 'var'");
+			syntaxErrorExpected("'begin', 'function', 'procedure', or 'var'");
 			break;
 		}
 	}
@@ -166,7 +171,7 @@ public class MPparser {
 		case MP_PROCEDURE:
 			break;
 		default:
-			syntaxError("start of variable declerations('var') or start of program('begin', 'function', 'procedure')");
+			syntaxErrorExpected("start of variable declerations('var') or start of program('begin', 'function', 'procedure')");
 			break;
 		}
 	}
@@ -189,7 +194,7 @@ public class MPparser {
 		case MP_PROCEDURE:
 			break;
 		default:
-			syntaxError("variable declerations('identifier') or start of program('begin', 'frunction', 'procedure')");
+			syntaxErrorExpected("variable declerations('identifier') or start of program('begin', 'frunction', 'procedure')");
 			break;
 		}
 	}
@@ -207,7 +212,7 @@ public class MPparser {
 			type();
 			break;
 		default:
-			syntaxError("'identifier'(1)");
+			syntaxErrorExpected("'identifier'(1)");
 			break;
 		}
 	}
@@ -231,7 +236,7 @@ public class MPparser {
 			match(Token.TokenName.MP_BOOLEAN);
 			break;
 		default:
-			syntaxError("variable type, 'integer', 'float', or 'boolean'");
+			syntaxErrorExpected("variable type, 'integer', 'float', or 'boolean'");
 			break;
 		}
 	}
@@ -256,7 +261,7 @@ public class MPparser {
 		case MP_BEGIN:
 			break;
 		default:
-			syntaxError("'procedure', 'function', or 'begin'");
+			syntaxErrorExpected("'procedure', 'function', or 'begin'");
 		}
 	}
 
@@ -275,7 +280,7 @@ public class MPparser {
 			symbolTable.deleteSymbolTable();
 			break;
 		default:
-			syntaxError("'procedure'");
+			syntaxErrorExpected("'procedure'");
 		}
 	}
 
@@ -294,7 +299,7 @@ public class MPparser {
 			symbolTable.deleteSymbolTable();
 			break;
 		default:
-			syntaxError("'function'");
+			syntaxErrorExpected("'function'");
 			break;
 		}
 	}
@@ -318,7 +323,7 @@ public class MPparser {
 			optionalFormalParameterList();
 			break;
 		default:
-			syntaxError("'procedure'");
+			syntaxErrorExpected("'procedure'");
 		}
 	}
 
@@ -343,7 +348,7 @@ public class MPparser {
 			type();
 			break;
 		default:
-			syntaxError("'function'");
+			syntaxErrorExpected("'function'");
 			break;
 		}
 	}
@@ -366,7 +371,7 @@ public class MPparser {
 		case MP_COLON:
 			break;
 		default:
-			syntaxError("parameter list in parentheses or start of function");
+			syntaxErrorExpected("parameter list in parentheses or start of function");
 			break;
 		}
 	}
@@ -387,7 +392,7 @@ public class MPparser {
 		case MP_RPAREN:
 			break;
 		default:
-			syntaxError("';' or ')'");
+			syntaxErrorExpected("';' or ')'");
 			break;
 		}
 	}
@@ -407,7 +412,7 @@ public class MPparser {
 			variableParameterSection();
 			break;
 		default:
-			syntaxError("'identifier' or 'var'");
+			syntaxErrorExpected("'identifier' or 'var'");
 			break;
 		}
 	}
@@ -425,7 +430,7 @@ public class MPparser {
 			type();
 			break;
 		default:
-			syntaxError("'identifier'(2)");
+			syntaxErrorExpected("'identifier'(2)");
 			break;
 		}
 	}
@@ -444,7 +449,7 @@ public class MPparser {
 			type();
 			break;
 		default:
-			syntaxError("'var'");
+			syntaxErrorExpected("'var'");
 			break;
 		}
 	}
@@ -460,7 +465,7 @@ public class MPparser {
 			compoundStatement();
 			break;
 		default:
-			syntaxError("'begin'");
+			syntaxErrorExpected("'begin'");
 			break;
 		}
 	}
@@ -478,7 +483,7 @@ public class MPparser {
 			match(Token.TokenName.MP_END);
 			break;
 		default:
-			syntaxError("'begin'");
+			syntaxErrorExpected("'begin'");
 			break;
 		}
 	}
@@ -505,7 +510,7 @@ public class MPparser {
 			statementTail();
 			break;
 		default:
-			syntaxError("start of statement sequence");
+			syntaxErrorExpected("start of statement sequence");
 			break;
 		}
 	}
@@ -527,7 +532,7 @@ public class MPparser {
 		case MP_UNTIL:
 			break;
 		default:
-			syntaxError("statement tail(';', 'end, 'until')");
+			syntaxErrorExpected("statement tail(';', 'end, 'until')");
 			break;
 		}
 	}
@@ -584,7 +589,7 @@ public class MPparser {
 			forStatement();
 			break;
 		default:
-			syntaxError("statement");
+			syntaxErrorExpected("statement");
 			break;
 		}
 	}
@@ -602,7 +607,7 @@ public class MPparser {
 		case MP_UNTIL:
 			break;
 		default:
-			syntaxError("empty statement");
+			syntaxErrorExpected("empty statement");
 			break;
 		}
 	}
@@ -622,7 +627,7 @@ public class MPparser {
 			match(Token.TokenName.MP_RPAREN);
 			break;
 		default:
-			syntaxError("'read'");
+			syntaxErrorExpected("'read'");
 			break;
 		}
 	}
@@ -643,7 +648,7 @@ public class MPparser {
 		case MP_RPAREN:
 			break;
 		default: 
-			syntaxError("',' or ')'");
+			syntaxErrorExpected("',' or ')'");
 			break;
 		}
 	}
@@ -659,7 +664,7 @@ public class MPparser {
 			variableIdentifier();
 			break;
 		default: 
-			syntaxError("'identifier'(3)");
+			syntaxErrorExpected("'identifier'(3)");
 			break;
 		}
 	}
@@ -679,7 +684,7 @@ public class MPparser {
 			match(Token.TokenName.MP_RPAREN);
 			break;
 		default:
-			syntaxError("'write'");
+			syntaxErrorExpected("'write'");
 			break;
 		}
 	}
@@ -700,7 +705,7 @@ public class MPparser {
 		case MP_RPAREN:
 			break;
 		default:
-			syntaxError("',' or ')'");
+			syntaxErrorExpected("',' or ')'");
 			break;
 		}
 	}
@@ -721,7 +726,7 @@ public class MPparser {
 			ordinalExpression();
 			break;
 		default:
-			syntaxError("an expression");
+			syntaxErrorExpected("an expression");
 			break;
 		}
 	}
@@ -746,7 +751,7 @@ public class MPparser {
 			expression();
 			break;
 		default:
-			syntaxError("a variable or function identifier");
+			syntaxErrorExpected("a variable or function identifier");
 			break;
 		}
 	}
@@ -766,7 +771,7 @@ public class MPparser {
 			optionalElsePart();
 			break;
 		default:
-			syntaxError("'if'");
+			syntaxErrorExpected("'if'");
 			break;
 		}
 	}
@@ -786,7 +791,7 @@ public class MPparser {
 		case MP_UNTIL:
 			break;
 		default:
-			syntaxError("'else' or end of statement");
+			syntaxErrorExpected("'else' or end of statement");
 			break;
 		}
 	}
@@ -805,7 +810,7 @@ public class MPparser {
 			booleanExpression();
 			break;
 		default:
-			syntaxError("'repeat'");
+			syntaxErrorExpected("'repeat'");
 			break;
 		}
 	}
@@ -824,7 +829,7 @@ public class MPparser {
 			statement();
 			break;
 		default:
-			syntaxError("'while'");
+			syntaxErrorExpected("'while'");
 			break;
 		}
 	}
@@ -847,7 +852,7 @@ public class MPparser {
 			statement();
 			break;
 		default:
-			syntaxError("'for'");
+			syntaxErrorExpected("'for'");
 			break;
 		}
 	}
@@ -863,7 +868,7 @@ public class MPparser {
 			variableIdentifier();
 			break;
 		default:
-			syntaxError("'identifier'(4)");
+			syntaxErrorExpected("'identifier'(4)");
 			break;
 		}
 	}
@@ -884,7 +889,7 @@ public class MPparser {
 			ordinalExpression();
 			break;
 		default: 
-			syntaxError("an expression");
+			syntaxErrorExpected("an expression");
 			break;
 		}
 	}
@@ -903,7 +908,7 @@ public class MPparser {
 			match(Token.TokenName.MP_DOWNTO);
 			break;
 		default:
-			syntaxError("'to' or 'downto'");
+			syntaxErrorExpected("'to' or 'downto'");
 			break;
 		}
 	}
@@ -924,7 +929,7 @@ public class MPparser {
 			ordinalExpression();
 			break;
 		default:
-			syntaxError("an expression");
+			syntaxErrorExpected("an expression");
 			break;
 		}
 	}
@@ -941,7 +946,7 @@ public class MPparser {
 			optionalActualParameterList();
 			break;
 		default:
-			syntaxError("a procedure identifier");
+			syntaxErrorExpected("a procedure identifier");
 			break;
 		}
 	}
@@ -985,7 +990,7 @@ public class MPparser {
 		case MP_UNTIL:
 			break;
 		default:
-			syntaxError("procedure parameters in parentheses, another statememt, or 'end'");
+			syntaxErrorExpected("procedure parameters in parentheses, another statememt, or 'end'");
 			break;
 		}
 	}
@@ -1006,7 +1011,7 @@ public class MPparser {
 		case MP_RPAREN:
 			break;
 		default:
-			syntaxError("another parameter (',') or the end of the parameter list (')')");
+			syntaxErrorExpected("another parameter (',') or the end of the parameter list (')')");
 			break;
 		}
 	}
@@ -1027,7 +1032,7 @@ public class MPparser {
 			ordinalExpression();
 			break;
 		default:
-			syntaxError("an expression");
+			syntaxErrorExpected("an expression");
 			break;
 		}
 	}
@@ -1049,7 +1054,7 @@ public class MPparser {
 			optionalRelationalPart();
 			break;
 		default:
-			syntaxError("an expression");
+			syntaxErrorExpected("an expression");
 			break;
 		}
 	}
@@ -1083,7 +1088,7 @@ public class MPparser {
 		case MP_UNTIL:
 			break;
 		default:
-			syntaxError("a relational operator ('>', '<', etc)");
+			syntaxErrorExpected("a relational operator ('>', '<', etc)");
 			break;
 		}
 	}
@@ -1119,7 +1124,7 @@ public class MPparser {
 			match(Token.TokenName.MP_NEQUAL);
 			break;
 		default:
-			syntaxError("a relational operator ('>', '<', etc)");
+			syntaxErrorExpected("a relational operator ('>', '<', etc)");
 			break;
 		}
 	}
@@ -1142,7 +1147,7 @@ public class MPparser {
 			termTail();
 			break;
 		default:
-			syntaxError("an expression");
+			syntaxErrorExpected("an expression");
 			break;
 		}
 	}
@@ -1180,7 +1185,7 @@ public class MPparser {
 		case MP_UNTIL:
 			break;
 		default:
-			syntaxError("term tail");
+			syntaxErrorExpected("term tail");
 			break;
 		}
 	}
@@ -1206,7 +1211,7 @@ public class MPparser {
 		case MP_NOT:
 			break;
 		default:
-			syntaxError("sign ('+' or '-') or start of term");
+			syntaxErrorExpected("sign ('+' or '-') or start of term");
 			break;
 		}
 	}
@@ -1230,7 +1235,7 @@ public class MPparser {
 			match(Token.TokenName.MP_OR);
 			break;
 		default:
-			syntaxError("'+', '-', or 'or'");
+			syntaxErrorExpected("'+', '-', or 'or'");
 			break;
 		}
 	}
@@ -1250,7 +1255,7 @@ public class MPparser {
 			factorTail();
 			break;
 		default:
-			syntaxError("a term");
+			syntaxErrorExpected("a term");
 			break;
 		}
 	}
@@ -1292,7 +1297,7 @@ public class MPparser {
 		case MP_UNTIL:
 			break;
 		default:
-			syntaxError("'*', 'and', '/', '%', or something else");
+			syntaxErrorExpected("'*', 'and', '/', '%', or something else");
 			break;
 		}
 	}
@@ -1320,7 +1325,7 @@ public class MPparser {
 			match(Token.TokenName.MP_AND);
 			break;
 		default:
-			syntaxError("'*', 'and', '/', or '%'");
+			syntaxErrorExpected("'*', 'and', '/', or '%'");
 			break;
 		}
 	}
@@ -1358,7 +1363,7 @@ public class MPparser {
 			optionalActualParameterList();
 			break;
 		default:
-			syntaxError("a factor");
+			syntaxErrorExpected("a factor");
 			break;
 		}
 	}
@@ -1375,7 +1380,7 @@ public class MPparser {
 			match(Token.TokenName.MP_IDENTIFIER);
 			break;
 		default:
-			syntaxError("a program identifier");
+			syntaxErrorExpected("a program identifier");
 			break;
 		}
 	}
@@ -1396,7 +1401,7 @@ public class MPparser {
 			match(Token.TokenName.MP_IDENTIFIER);
 			break;
 		default:
-			syntaxError("a variable identifier");
+			syntaxErrorExpected("a variable identifier");
 			break;
 		}
 	}
@@ -1412,7 +1417,7 @@ public class MPparser {
 			match(Token.TokenName.MP_IDENTIFIER);
 			break;
 		default:
-			syntaxError("a procedure identifier");
+			syntaxErrorExpected("a procedure identifier");
 			break;
 		}
 	}
@@ -1428,7 +1433,7 @@ public class MPparser {
 			match(Token.TokenName.MP_IDENTIFIER);
 			break;
 		default:
-			syntaxError("a function identifier");
+			syntaxErrorExpected("a function identifier");
 			break;
 		}
 	}
@@ -1449,7 +1454,7 @@ public class MPparser {
 			expression();
 			break;
 		default:
-			syntaxError("a boolean expression");
+			syntaxErrorExpected("a boolean expression");
 			break;
 		}
 	}
@@ -1470,7 +1475,7 @@ public class MPparser {
 			expression();
 			break;
 		default:
-			syntaxError("a ordianl expression");
+			syntaxErrorExpected("a ordianl expression");
 			break;
 		}
 	}
@@ -1492,7 +1497,7 @@ public class MPparser {
 			identifierTail();
 			break;
 		default:
-			syntaxError("'identifier'(5)");
+			syntaxErrorExpected("'identifier'(5)");
 			break;
 		}
 	}
@@ -1518,7 +1523,7 @@ public class MPparser {
 		case MP_COLON:
 			break;
 		default:
-			syntaxError("',' and more identifiers, or ':' and a variable type");
+			syntaxErrorExpected("',' and more identifiers, or ':' and a variable type");
 			break;
 		}
 	}
