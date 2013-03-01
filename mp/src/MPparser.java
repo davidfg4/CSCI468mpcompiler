@@ -268,8 +268,15 @@ public class MPparser {
 		switch (lookahead.getToken()) {
 		// rule 15: ProcedureDeclaration --> ProcedureHeading ";" Block ";" 
 		case MP_PROCEDURE:
-			procedureHeading();
+			String procedureName = procedureHeading();
 			match(Token.TokenName.MP_SCOLON);
+			try {
+				symbolTable.insertSymbol(new Symbol(procedureName));
+				symbolTable.createSymbolTable(procedureName);
+			} catch (SymbolTable.SymbolAlreadyExistsException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			block();
 			match(Token.TokenName.MP_SCOLON);
 			symbolTable.deleteSymbolTable();
@@ -287,8 +294,15 @@ public class MPparser {
 		switch (lookahead.getToken()) {
 		// rule 16: FunctionDeclaration --> FunctionHeading ";" Block ";"
 		case MP_FUNCTION:
-			functionHeading();
+			String functionName = functionHeading();
 			match(Token.TokenName.MP_SCOLON);
+			try {
+				symbolTable.insertSymbol(new Symbol(functionName));
+				symbolTable.createSymbolTable(functionName);
+			} catch (SymbolTable.SymbolAlreadyExistsException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			block();
 			match(Token.TokenName.MP_SCOLON);
 			symbolTable.deleteSymbolTable();
@@ -303,40 +317,33 @@ public class MPparser {
 	 * Pre: ProcedureHeading is leftmost nonterminal
 	 * Post: ProcedureHeading is expanded
 	 */
-	private void procedureHeading() {
+	private String procedureHeading() {
+		String procedureName = "";
 		switch (lookahead.getToken()) {
 		// rule 17: ProcedureHeading --> "procedure" ProcedureIdentifier OptionalFormalParameterList
 		case MP_PROCEDURE:
 			match(Token.TokenName.MP_PROCEDURE);
-			try {
-				symbolTable.insertSymbol(new Symbol(lookahead.getLexeme()));
-				symbolTable.createSymbolTable(lookahead.getLexeme());
-			} catch (SymbolTable.SymbolAlreadyExistsException e) {
-				//output for SymbolAlreadyExistsException
-			}
+			procedureName = lookahead.getLexeme();
 			procedureIdentifier();
 			optionalFormalParameterList();
 			break;
 		default:
 			syntaxError("'procedure'");
 		}
+		return procedureName;
 	}
 
 	/**
 	 * Pre: FunctionHeading is leftmost nonterminal
 	 * Post: ProcedureHeading is expanded
 	 */
-	private void functionHeading() {
+	private String functionHeading() {
+		String functionName = "";
 		switch (lookahead.getToken()) {
 		// rule 18:FunctionHeading --> "function" FunctionIdentifier OptionalFormalParameterList Type
 		case MP_FUNCTION:
 			match(Token.TokenName.MP_FUNCTION);
-			try {
-				symbolTable.insertSymbol(new Symbol(lookahead.getLexeme()));
-				symbolTable.createSymbolTable(lookahead.getLexeme());
-			} catch (SymbolTable.SymbolAlreadyExistsException e) {
-				//output for SymbolAlreadyExistsException
-			}
+			functionName = lookahead.getLexeme();
 			functionIdentifier();
 			optionalFormalParameterList();
 			match(Token.TokenName.MP_COLON);
@@ -346,6 +353,7 @@ public class MPparser {
 			syntaxError("'function'");
 			break;
 		}
+		return functionName;
 	}
 
 	/**
