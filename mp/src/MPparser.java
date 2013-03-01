@@ -1,5 +1,3 @@
-//Test - created new branch
-
 public class MPparser {
 
 	private Token lookahead;
@@ -16,9 +14,9 @@ public class MPparser {
 		scanner.openFile(filename);
 		lookahead = scanner.getToken();
 		checkForScannerErrors(lookahead);
-		symbolTable.createSymbolTable("main");
 		systemGoal();
 		System.out.println("Successfully parsed! No scanner or parser errors found.");
+		//System.out.println(symbolTable);
 	}
 
 	public static void main(String args[]) {
@@ -274,6 +272,7 @@ public class MPparser {
 			match(Token.TokenName.MP_SCOLON);
 			block();
 			match(Token.TokenName.MP_SCOLON);
+			symbolTable.deleteSymbolTable();
 			break;
 		default:
 			syntaxError("'procedure'");
@@ -292,6 +291,7 @@ public class MPparser {
 			match(Token.TokenName.MP_SCOLON);
 			block();
 			match(Token.TokenName.MP_SCOLON);
+			symbolTable.deleteSymbolTable();
 			break;
 		default:
 			syntaxError("'function'");
@@ -308,6 +308,12 @@ public class MPparser {
 		// rule 17: ProcedureHeading --> "procedure" ProcedureIdentifier OptionalFormalParameterList
 		case MP_PROCEDURE:
 			match(Token.TokenName.MP_PROCEDURE);
+			try {
+				symbolTable.insertSymbol(new Symbol(lookahead.getLexeme()));
+				symbolTable.createSymbolTable(lookahead.getLexeme());
+			} catch (SymbolTable.SymbolAlreadyExistsException e) {
+				//output for SymbolAlreadyExistsException
+			}
 			procedureIdentifier();
 			optionalFormalParameterList();
 			break;
@@ -325,6 +331,12 @@ public class MPparser {
 		// rule 18:FunctionHeading --> "function" FunctionIdentifier OptionalFormalParameterList Type
 		case MP_FUNCTION:
 			match(Token.TokenName.MP_FUNCTION);
+			try {
+				symbolTable.insertSymbol(new Symbol(lookahead.getLexeme()));
+				symbolTable.createSymbolTable(lookahead.getLexeme());
+			} catch (SymbolTable.SymbolAlreadyExistsException e) {
+				//output for SymbolAlreadyExistsException
+			}
 			functionIdentifier();
 			optionalFormalParameterList();
 			match(Token.TokenName.MP_COLON);
@@ -1359,6 +1371,7 @@ public class MPparser {
 		switch (lookahead.getToken()) {
 		// rule 100: ProgramIdentifier --> Identifier
 		case MP_IDENTIFIER:
+			symbolTable.createSymbolTable(lookahead.getLexeme());
 			match(Token.TokenName.MP_IDENTIFIER);
 			break;
 		default:
@@ -1375,6 +1388,11 @@ public class MPparser {
 		switch (lookahead.getToken()) {
 		// rule 1-1: VariableIdentifier --> Identifier
 		case MP_IDENTIFIER:
+			try {
+				symbolTable.insertSymbol(new Symbol(lookahead.getLexeme()));
+			} catch (SymbolTable.SymbolAlreadyExistsException e) {
+				//output for SymbolAlreadyExistsException
+			}
 			match(Token.TokenName.MP_IDENTIFIER);
 			break;
 		default:
@@ -1465,6 +1483,11 @@ public class MPparser {
 		switch (lookahead.getToken()) {
 		// rule 106: IdentifierList --> Identifier IdentifierTail
 		case MP_IDENTIFIER:
+			try {
+				symbolTable.insertSymbol(new Symbol(lookahead.getLexeme()));
+			} catch (SymbolTable.SymbolAlreadyExistsException e) {
+				//output for SymbolAlreadyExistsException
+			}
 			match(Token.TokenName.MP_IDENTIFIER);
 			identifierTail();
 			break;
@@ -1483,6 +1506,11 @@ public class MPparser {
 		// rule 107: IdentifierTail --> Identifier
 		case MP_COMMA:
 			match(Token.TokenName.MP_COMMA);
+			try {
+				symbolTable.insertSymbol(new Symbol(lookahead.getLexeme()));
+			} catch (SymbolTable.SymbolAlreadyExistsException e) {
+				//output for SymbolAlreadyExistsException
+			}
 			match(Token.TokenName.MP_IDENTIFIER);
 			identifierTail();
 			break;
