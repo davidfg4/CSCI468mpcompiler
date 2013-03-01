@@ -97,9 +97,9 @@ public class MPparser {
 		switch (lookahead.getToken()) {
 		// rule 2: Program --> ProgramHeading ";" Block "."
 		case MP_PROGRAM:
-			programHeading();
+			String programName = programHeading();
 			match(Token.TokenName.MP_SCOLON);
-			symbolTable.createSymbolTable("");
+			symbolTable.createSymbolTable(programName);
 			block();
 			match(Token.TokenName.MP_PERIOD);
 			symbolTable.deleteSymbolTable();
