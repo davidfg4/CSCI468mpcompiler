@@ -9,6 +9,11 @@ begin
 	testFunction;
 end;
 
+procedure testProcedure;
+begin
+   testFunction;
+end;
+
 function testFunction:integer;
 begin
 	testProcedure(arg1, arg2);
