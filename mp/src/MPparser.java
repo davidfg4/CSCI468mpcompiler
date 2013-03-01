@@ -105,8 +105,10 @@ public class MPparser {
 		case MP_PROGRAM:
 			programHeading();
 			match(Token.TokenName.MP_SCOLON);
+			symbolTable.createSymbolTable("");
 			block();
 			match(Token.TokenName.MP_PERIOD);
+			symbolTable.deleteSymbolTable();
 			break;
 		default:
 			syntaxErrorExpected("'program'");
@@ -119,17 +121,19 @@ public class MPparser {
 	 * Pre: ProgramHeading is leftmost nonterminal
 	 * Post: ProgramHeading has been expanded
 	 */
-	private void programHeading() {
+	private String programHeading() {
+		String programName = "";
 		switch (lookahead.getToken()) {
 		// rule 3: ProgramHeading --> "program" ProgramIdentifier
 		case MP_PROGRAM:
 			match(Token.TokenName.MP_PROGRAM);
-			programIdentifier();
+			programName = programIdentifier();
 			break;
 		default:
 			syntaxErrorExpected("'program'");
 			break;
 		}
+		return programName;
 	}
 
 	/**
@@ -1379,17 +1383,19 @@ public class MPparser {
 	 * Pre: ProgramIdentifier is leftmost nonterminal
 	 * Post: ProgramIdentifier is expanded
 	 */
-	private void programIdentifier() {
+	private String programIdentifier() {
+		String programName = "";
 		switch (lookahead.getToken()) {
 		// rule 100: ProgramIdentifier --> Identifier
 		case MP_IDENTIFIER:
-			symbolTable.createSymbolTable(lookahead.getLexeme());
+			programName = lookahead.getLexeme();
 			match(Token.TokenName.MP_IDENTIFIER);
 			break;
 		default:
 			syntaxErrorExpected("a program identifier");
 			break;
 		}
+		return programName;
 	}
 
 	/**
