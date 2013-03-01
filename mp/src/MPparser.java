@@ -1,3 +1,6 @@
+import java.util.Collection;
+import java.util.LinkedList;
+
 public class MPparser {
 
 	private Token lookahead;
@@ -212,9 +215,7 @@ public class MPparser {
 		switch (lookahead.getToken()) {
 		// rule 9: VariableDeclaration --> IdentifierList ":" Type
 		case MP_IDENTIFIER:
-			identifierList();
-			match(Token.TokenName.MP_COLON);
-			type();
+			matchIdentifiersColonType();
 			break;
 		default:
 			syntaxErrorExpected("'identifier'(1)");
@@ -284,7 +285,7 @@ public class MPparser {
 				symbolTable.insertSymbol(new Symbol(procedureName));
 				symbolTable.createSymbolTable(procedureName);
 			} catch (SymbolTable.SymbolAlreadyExistsException e) {
-				syntaxErrorGeneric("Error: Symbol " + procedureName + " already exists.");
+				syntaxErrorGeneric("Error: Procedure '" + procedureName + "' already exists in the current scope.");
 			}
 			block();
 			match(Token.TokenName.MP_SCOLON);
@@ -309,7 +310,7 @@ public class MPparser {
 				symbolTable.insertSymbol(new Symbol(functionName));
 				symbolTable.createSymbolTable(functionName);
 			} catch (SymbolTable.SymbolAlreadyExistsException e) {
-				syntaxErrorGeneric("Error: Symbol " + functionName + " already exists.");
+				syntaxErrorGeneric("Error: Function '" + functionName + "' already exists in the current scope.");
 			}
 			block();
 			match(Token.TokenName.MP_SCOLON);
@@ -436,9 +437,7 @@ public class MPparser {
 		switch (lookahead.getToken()) {
 		// rule 25: ValueParameterSection --> IdentifierList ":" Type
 		case MP_IDENTIFIER:
-			identifierList();
-			match(Token.TokenName.MP_COLON);
-			type();
+			matchIdentifiersColonType();
 			break;
 		default:
 			syntaxErrorExpected("'identifier'(2)");
@@ -455,13 +454,26 @@ public class MPparser {
 		// rule 26: VariableParameterSection --> "var" IdentifierList ":" Type
 		case MP_VAR:
 			match(Token.TokenName.MP_VAR);
-			identifierList();
-			match(Token.TokenName.MP_COLON);
-			type();
+			matchIdentifiersColonType();
 			break;
 		default:
 			syntaxErrorExpected("'var'");
 			break;
+		}
+	}
+	
+	private void matchIdentifiersColonType()
+	{
+		Collection<String> identifiers = identifierList();
+		match(Token.TokenName.MP_COLON);
+		type();
+		for (String identifier : identifiers)
+		{
+			try {
+				symbolTable.insertSymbol(new Symbol(identifier));
+			} catch (SymbolTable.SymbolAlreadyExistsException e) {
+				syntaxErrorGeneric("Error: Identifier '" + identifier + "' already exists in the current scope.");
+			}
 		}
 	}
 
@@ -1409,7 +1421,7 @@ public class MPparser {
 			try {
 				symbolTable.insertSymbol(new Symbol(lookahead.getLexeme()));
 			} catch (SymbolTable.SymbolAlreadyExistsException e) {
-				syntaxErrorGeneric("Error: Symbol " + lookahead.getLexeme() + " already exists.");
+				syntaxErrorGeneric("Error: Identifier '" + lookahead.getLexeme() + "' already exists in the current scope.");
 			}
 			match(Token.TokenName.MP_IDENTIFIER);
 			break;
@@ -1497,40 +1509,34 @@ public class MPparser {
 	 * Pre: IdentifierList is leftmost nonterminal
 	 * Post: IdentifierList is expanded
 	 */
-	private void identifierList() {
+	private Collection<String> identifierList() {
+		Collection<String> identifiers = new LinkedList<String>();
 		switch (lookahead.getToken()) {
 		// rule 106: IdentifierList --> Identifier IdentifierTail
 		case MP_IDENTIFIER:
-			try {
-				symbolTable.insertSymbol(new Symbol(lookahead.getLexeme()));
-			} catch (SymbolTable.SymbolAlreadyExistsException e) {
-				syntaxErrorGeneric("Error: Symbol " + lookahead.getLexeme() + " already exists.");
-			}
+			identifiers.add(lookahead.getLexeme());
 			match(Token.TokenName.MP_IDENTIFIER);
-			identifierTail();
+			identifierTail(identifiers);
 			break;
 		default:
 			syntaxErrorExpected("'identifier'(5)");
 			break;
 		}
+		return identifiers;
 	}
 
 	/**
 	 * Pre: IdentifierTail is leftmost nonterminal
 	 * Post: IdentifierTail is expanded
 	 */
-	private void identifierTail() {
+	private void identifierTail(Collection<String> identifiers) {
 		switch (lookahead.getToken()) {
 		// rule 107: IdentifierTail --> Identifier
 		case MP_COMMA:
 			match(Token.TokenName.MP_COMMA);
-			try {
-				symbolTable.insertSymbol(new Symbol(lookahead.getLexeme()));
-			} catch (SymbolTable.SymbolAlreadyExistsException e) {
-				syntaxErrorGeneric("Error: Symbol " + lookahead.getLexeme() + " already exists.");
-			}
+			identifiers.add(lookahead.getLexeme());
 			match(Token.TokenName.MP_IDENTIFIER);
-			identifierTail();
+			identifierTail(identifiers);
 			break;
 		// rule 108: IdentifierTail --> epsilon
 		case MP_COLON:
