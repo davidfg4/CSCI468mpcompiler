@@ -62,14 +62,15 @@ public class MPparser {
 	}
 
 	private void syntaxErrorExpected(String expected) {
-		System.out.println(scanner.getError(lookahead, "Syntax Error: Expected " +
+		System.err.println(scanner.getError(lookahead, "Syntax Error: Expected " +
 				expected + ", got '" + lookahead.getLexeme() + "' instead"));
 		System.exit(1);
 	}
 	
 	private void syntaxErrorGeneric(String error)
 	{
-		System.out.println(error);
+		System.err.println(error);
+		System.exit(1);
 	}
 
 	/***************************************************************************
@@ -279,8 +280,7 @@ public class MPparser {
 				symbolTable.insertSymbol(new Symbol(procedureName));
 				symbolTable.createSymbolTable(procedureName);
 			} catch (SymbolTable.SymbolAlreadyExistsException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				syntaxErrorGeneric("Error: Symbol " + procedureName + " already exists.");
 			}
 			block();
 			match(Token.TokenName.MP_SCOLON);
@@ -305,8 +305,7 @@ public class MPparser {
 				symbolTable.insertSymbol(new Symbol(functionName));
 				symbolTable.createSymbolTable(functionName);
 			} catch (SymbolTable.SymbolAlreadyExistsException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				syntaxErrorGeneric("Error: Symbol " + functionName + " already exists.");
 			}
 			block();
 			match(Token.TokenName.MP_SCOLON);
@@ -1404,7 +1403,7 @@ public class MPparser {
 			try {
 				symbolTable.insertSymbol(new Symbol(lookahead.getLexeme()));
 			} catch (SymbolTable.SymbolAlreadyExistsException e) {
-				//output for SymbolAlreadyExistsException
+				syntaxErrorGeneric("Error: Symbol " + lookahead.getLexeme() + " already exists.");
 			}
 			match(Token.TokenName.MP_IDENTIFIER);
 			break;
@@ -1499,7 +1498,7 @@ public class MPparser {
 			try {
 				symbolTable.insertSymbol(new Symbol(lookahead.getLexeme()));
 			} catch (SymbolTable.SymbolAlreadyExistsException e) {
-				//output for SymbolAlreadyExistsException
+				syntaxErrorGeneric("Error: Symbol " + lookahead.getLexeme() + " already exists.");
 			}
 			match(Token.TokenName.MP_IDENTIFIER);
 			identifierTail();
@@ -1522,7 +1521,7 @@ public class MPparser {
 			try {
 				symbolTable.insertSymbol(new Symbol(lookahead.getLexeme()));
 			} catch (SymbolTable.SymbolAlreadyExistsException e) {
-				//output for SymbolAlreadyExistsException
+				syntaxErrorGeneric("Error: Symbol " + lookahead.getLexeme() + " already exists.");
 			}
 			match(Token.TokenName.MP_IDENTIFIER);
 			identifierTail();
