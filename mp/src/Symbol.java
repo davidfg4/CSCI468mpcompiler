@@ -5,7 +5,7 @@ public class Symbol {
 		VARIABLE, PARAMETER, PROCEDURE, FUNCTION
 	}
 	public enum Type {
-		NONE, INTEGER, FIXED, FLOAT, STRING, BOOLEAN
+		NONE, INTEGER, FLOAT, STRING, BOOLEAN
 	}
 	public enum ParameterMode {
 		COPY, REFERENCE
@@ -40,7 +40,9 @@ public class Symbol {
 	Symbol(String l, Kind k, Type t, List<Symbol> p)
 	{
 
-		this(l,k,t);
+		lexeme = l;
+		kind = k;
+		type = t;
 		parameters = p;
 		if (k == Kind.PROCEDURE && t != Type.NONE) {
 			System.err.println("Error: procedures can not have a return type");

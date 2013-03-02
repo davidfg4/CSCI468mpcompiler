@@ -19,7 +19,6 @@ public class MPparser {
 		checkForScannerErrors(lookahead);
 		systemGoal();
 		System.out.println("Successfully parsed! No scanner or parser errors found.");
-		//System.out.println(symbolTable);
 	}
 
 	public static void main(String args[]) {
@@ -111,6 +110,7 @@ public class MPparser {
 			symbolTable.createSymbolTable(programName);
 			block();
 			match(Token.TokenName.MP_PERIOD);
+			//System.out.println(symbolTable);
 			symbolTable.deleteSymbolTable();
 			break;
 		default:
@@ -215,7 +215,7 @@ public class MPparser {
 		switch (lookahead.getToken()) {
 		// rule 9: VariableDeclaration --> IdentifierList ":" Type
 		case MP_IDENTIFIER:
-			matchIdentifiersColonType();
+			matchIdentifiersColonType(Symbol.Kind.VARIABLE);
 			break;
 		default:
 			syntaxErrorExpected("'identifier'(1)");
@@ -227,24 +227,29 @@ public class MPparser {
 	 * Pre: Type is leftmost nonterminal
 	 * Post: Type is expanded
 	 */
-	private void type() {
+	private Symbol.Type type() {
+		Symbol.Type type = null;
 		switch (lookahead.getToken()) {
 		// rule 10: Type --> "Integer"
 		case MP_INTEGER:
 			match(Token.TokenName.MP_INTEGER);
+			type = Symbol.Type.INTEGER;
 			break;
 		// rule 11: Type --> "Float"
 		case MP_FLOAT:
 			match(Token.TokenName.MP_FLOAT);
+			type = Symbol.Type.FLOAT;
 			break;
 		// rule ?: Type --> "Boolean"
 		case MP_BOOLEAN:
 			match(Token.TokenName.MP_BOOLEAN);
+			type = Symbol.Type.BOOLEAN;
 			break;
 		default:
 			syntaxErrorExpected("variable type, 'integer', 'float', or 'boolean'");
 			break;
 		}
+		return type;
 	}
 
 	/**
@@ -282,7 +287,8 @@ public class MPparser {
 			String procedureName = procedureHeading();
 			match(Token.TokenName.MP_SCOLON);
 			try {
-				symbolTable.insertSymbol(new Symbol(procedureName));
+				// TODO: set the parameter list:
+				symbolTable.insertSymbol(new Symbol(procedureName, Symbol.Kind.PROCEDURE, Symbol.Type.NONE, null));
 				symbolTable.createSymbolTable(procedureName);
 			} catch (SymbolTable.SymbolAlreadyExistsException e) {
 				syntaxErrorGeneric("Error: Procedure '" + procedureName + "' already exists in the current scope.");
@@ -307,6 +313,7 @@ public class MPparser {
 			String functionName = functionHeading();
 			match(Token.TokenName.MP_SCOLON);
 			try {
+				// TODO: create the function symbol with all the necessary parameters:
 				symbolTable.insertSymbol(new Symbol(functionName));
 				symbolTable.createSymbolTable(functionName);
 			} catch (SymbolTable.SymbolAlreadyExistsException e) {
@@ -437,7 +444,7 @@ public class MPparser {
 		switch (lookahead.getToken()) {
 		// rule 25: ValueParameterSection --> IdentifierList ":" Type
 		case MP_IDENTIFIER:
-			matchIdentifiersColonType();
+			matchIdentifiersColonType(Symbol.Kind.PARAMETER);
 			break;
 		default:
 			syntaxErrorExpected("'identifier'(2)");
@@ -454,7 +461,7 @@ public class MPparser {
 		// rule 26: VariableParameterSection --> "var" IdentifierList ":" Type
 		case MP_VAR:
 			match(Token.TokenName.MP_VAR);
-			matchIdentifiersColonType();
+			matchIdentifiersColonType(Symbol.Kind.PARAMETER);
 			break;
 		default:
 			syntaxErrorExpected("'var'");
@@ -462,15 +469,15 @@ public class MPparser {
 		}
 	}
 	
-	private void matchIdentifiersColonType()
+	private void matchIdentifiersColonType(Symbol.Kind kind)
 	{
 		Collection<String> identifiers = identifierList();
 		match(Token.TokenName.MP_COLON);
-		type();
+		Symbol.Type type = type();
 		for (String identifier : identifiers)
 		{
 			try {
-				symbolTable.insertSymbol(new Symbol(identifier));
+				symbolTable.insertSymbol(new Symbol(identifier, kind, type));
 			} catch (SymbolTable.SymbolAlreadyExistsException e) {
 				syntaxErrorGeneric("Error: Identifier '" + identifier + "' already exists in the current scope.");
 			}
