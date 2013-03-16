@@ -284,15 +284,9 @@ public class MPparser {
 		switch (lookahead.getToken()) {
 		// rule 15: ProcedureDeclaration --> ProcedureHeading ";" Block ";" 
 		case MP_PROCEDURE:
-			String procedureName = procedureHeading();
+			// new Symbol Table created within here:
+			procedureHeading();
 			match(Token.TokenName.MP_SCOLON);
-			try {
-				// TODO: set the parameter list:
-				symbolTable.insertSymbol(new Symbol(procedureName, Symbol.Kind.PROCEDURE, Symbol.Type.NONE, null));
-				symbolTable.createSymbolTable(procedureName);
-			} catch (SymbolTable.SymbolAlreadyExistsException e) {
-				syntaxErrorGeneric("Error: Procedure '" + procedureName + "' already exists in the current scope.");
-			}
 			block();
 			match(Token.TokenName.MP_SCOLON);
 			symbolTable.deleteSymbolTable();
@@ -310,15 +304,9 @@ public class MPparser {
 		switch (lookahead.getToken()) {
 		// rule 16: FunctionDeclaration --> FunctionHeading ";" Block ";"
 		case MP_FUNCTION:
-			String functionName = functionHeading();
+			// new Symbol Table created within here:
+			functionHeading();
 			match(Token.TokenName.MP_SCOLON);
-			try {
-				// TODO: create the function symbol with all the necessary parameters:
-				symbolTable.insertSymbol(new Symbol(functionName));
-				symbolTable.createSymbolTable(functionName);
-			} catch (SymbolTable.SymbolAlreadyExistsException e) {
-				syntaxErrorGeneric("Error: Function '" + functionName + "' already exists in the current scope.");
-			}
 			block();
 			match(Token.TokenName.MP_SCOLON);
 			symbolTable.deleteSymbolTable();
@@ -333,43 +321,57 @@ public class MPparser {
 	 * Pre: ProcedureHeading is leftmost nonterminal
 	 * Post: ProcedureHeading is expanded
 	 */
-	private String procedureHeading() {
+	private void procedureHeading() {
 		String procedureName = "";
 		switch (lookahead.getToken()) {
 		// rule 17: ProcedureHeading --> "procedure" ProcedureIdentifier OptionalFormalParameterList
 		case MP_PROCEDURE:
 			match(Token.TokenName.MP_PROCEDURE);
 			procedureName = lookahead.getLexeme();
+			try {
+				symbolTable.insertSymbol(new Symbol(procedureName, Symbol.Kind.PROCEDURE, Symbol.Type.NONE));
+				symbolTable.createSymbolTable(procedureName);
+			} catch (SymbolTable.SymbolAlreadyExistsException e) {
+				syntaxErrorGeneric("Error: Procedure '" + procedureName + "' already exists in the current scope.");
+			}
 			procedureIdentifier();
 			optionalFormalParameterList();
 			break;
 		default:
 			syntaxErrorExpected("'procedure'");
 		}
-		return procedureName;
 	}
 
 	/**
 	 * Pre: FunctionHeading is leftmost nonterminal
 	 * Post: ProcedureHeading is expanded
 	 */
-	private String functionHeading() {
+	private void functionHeading() {
 		String functionName = "";
+		Symbol.Type type = null;
+		Symbol functionSymbol = null;
 		switch (lookahead.getToken()) {
 		// rule 18:FunctionHeading --> "function" FunctionIdentifier OptionalFormalParameterList Type
 		case MP_FUNCTION:
 			match(Token.TokenName.MP_FUNCTION);
 			functionName = lookahead.getLexeme();
+			try {
+				functionSymbol = new Symbol(functionName, Symbol.Kind.FUNCTION, Symbol.Type.NONE);
+				symbolTable.insertSymbol(functionSymbol);
+				symbolTable.createSymbolTable(functionName);
+			} catch (SymbolTable.SymbolAlreadyExistsException e) {
+				syntaxErrorGeneric("Error: Function '" + functionName + "' already exists in the current scope.");
+			}
 			functionIdentifier();
 			optionalFormalParameterList();
 			match(Token.TokenName.MP_COLON);
-			type();
+			type = type();
+			functionSymbol.type = type;
 			break;
 		default:
 			syntaxErrorExpected("'function'");
 			break;
 		}
-		return functionName;
 	}
 
 	/**
@@ -767,18 +769,24 @@ public class MPparser {
 	 */
 	private void assignmentStatement() {
 		switch (lookahead.getToken()) {
-		// TODO: How do we determine which to do?
 		// rule 51: AssignmentStatement --> VariableIdentifier ":=" Expression
-		case MP_IDENTIFIER: // TODO: For now assume they are all variables. THIS IS WRONG.
-			variableIdentifier();
-			match(Token.TokenName.MP_ASSIGN);
-			expression();
-			break;
 		// rule 52: AssignmentStatement --> FunctionIdentifier ":=" Expression
-		case DUMMY_1:
-			functionIdentifier();
-			match(Token.TokenName.MP_ASSIGN);
-			expression();
+		case MP_IDENTIFIER:
+			Symbol assignedVar = symbolTable.findSymbol(lookahead.getLexeme());
+			if (assignedVar == null) {
+				syntaxErrorGeneric("Error: Variable used before it is defined.");
+			} else if (assignedVar.kind == Symbol.Kind.VARIABLE) {
+				// rule 51: AssignmentStatement --> VariableIdentifier ":=" Expression
+				variableIdentifier();
+				match(Token.TokenName.MP_ASSIGN);
+				expression();
+			} else if (assignedVar.kind == Symbol.Kind.FUNCTION) {
+				// rule 52: AssignmentStatement --> FunctionIdentifier ":=" Expression
+				// personal note: how do you assign something to a function? what is going on here?
+				functionIdentifier();
+				match(Token.TokenName.MP_ASSIGN);
+				expression();
+			}
 			break;
 		default:
 			syntaxErrorExpected("a variable or function identifier");
@@ -1366,8 +1374,6 @@ public class MPparser {
 	 */
 	private void factor() {
 		switch (lookahead.getToken()) {
-		// TODO: there is an conflict here between matching VariableIdentifier
-		// and FunctionIdentifier.
 		// Factor --> UnsignedInteger
 		case MP_INTEGER_LIT:
 			match(Token.TokenName.MP_INTEGER_LIT);
@@ -1387,10 +1393,18 @@ public class MPparser {
 			expression();
 			match(Token.TokenName.MP_RPAREN);
 			break;
-		// Factor --> FunctionIdentifier OptionalActualParameterList
-		case MP_IDENTIFIER: // TODO: for now assume all identifiers are functions. THIS IS WRONG.
-			functionIdentifier();
-			optionalActualParameterList();
+		case MP_IDENTIFIER:
+			Symbol assignedVar = symbolTable.findSymbol(lookahead.getLexeme());
+			if (assignedVar == null) {
+				syntaxErrorGeneric("Error: Variable used before it is defined.");
+			} else if (assignedVar.kind == Symbol.Kind.VARIABLE) {
+				// Factor --> VariableIdentifier
+				variableIdentifier();
+			} else if (assignedVar.kind == Symbol.Kind.FUNCTION) {
+				// Factor --> FunctionIdentifier OptionalActualParameterList
+				functionIdentifier();
+				optionalActualParameterList();
+			}
 			break;
 		default:
 			syntaxErrorExpected("a factor");
@@ -1425,11 +1439,6 @@ public class MPparser {
 		switch (lookahead.getToken()) {
 		// rule 1-1: VariableIdentifier --> Identifier
 		case MP_IDENTIFIER:
-			try {
-				symbolTable.insertSymbol(new Symbol(lookahead.getLexeme()));
-			} catch (SymbolTable.SymbolAlreadyExistsException e) {
-				syntaxErrorGeneric("Error: Identifier '" + lookahead.getLexeme() + "' already exists in the current scope.");
-			}
 			match(Token.TokenName.MP_IDENTIFIER);
 			break;
 		default:

@@ -4,6 +4,7 @@ import java.util.NoSuchElementException;
 
 public class SymbolTable {
 	private LinkedList<SubSymbolTable<String,Symbol>> symbolTables;
+	static private Symbol mostRecentFunctionOrParameter;
 	
 	SymbolTable() {
 		symbolTables = new LinkedList<SubSymbolTable<String,Symbol>>();
@@ -15,6 +16,12 @@ public class SymbolTable {
 				throw new SymbolAlreadyExistsException("Error: Symbol '" + s.lexeme + "' already exists in the current scope");
 			}
 			symbolTables.getFirst().put(s.lexeme, s);
+			// If adding a parameter, also add it to the parameter list of the
+			// appropriate function or procedure.
+			if (s.kind == Symbol.Kind.FUNCTION || s.kind == Symbol.Kind.PROCEDURE)
+				mostRecentFunctionOrParameter = s;
+			if (s.kind == Symbol.Kind.PARAMETER)
+				mostRecentFunctionOrParameter.parameters.add(s);
 		} catch (NoSuchElementException e) {
 			System.err.println("Error: No symbol table to insert into. Try createSymbolTable()");
 			System.exit(1);
@@ -62,32 +69,6 @@ public class SymbolTable {
 		}
 		s = "Symbol Tables:\n" + s;
 		return s;
-	}
-	
-	// For testing purposes only
-	public static void main(String[] args) {
-		SymbolTable testTable = new SymbolTable();
-		try {
-			testTable.createSymbolTable("main");
-			testTable.insertSymbol(new Symbol("x"));
-			testTable.insertSymbol(new Symbol("y"));
-			testTable.insertSymbol(new Symbol("z"));
-			testTable.createSymbolTable("fred");
-			testTable.insertSymbol(new Symbol("a"));
-			testTable.insertSymbol(new Symbol("b"));
-			testTable.insertSymbol(new Symbol("c"));
-			testTable.deleteSymbolTable();
-			testTable.createSymbolTable("mary");
-			testTable.insertSymbol(new Symbol("d"));
-			testTable.insertSymbol(new Symbol("e"));
-			testTable.insertSymbol(new Symbol("f"));
-		} catch (SymbolAlreadyExistsException e) {
-			System.err.println(e.getMessage());
-			System.exit(1);
-		}
-		System.out.println(testTable);
-		System.out.println(testTable.findSymbol("d"));
-		System.out.println(testTable.findSymbol("x"));
 	}
 	
 	@SuppressWarnings("serial")

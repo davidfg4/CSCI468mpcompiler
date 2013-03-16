@@ -21,9 +21,6 @@ public class Token {
 		MP_EOF,
 		// Errors
 		MP_RUN_COMMENT, MP_RUN_STRING, MP_ERROR,
-		// TODO remove dummies
-		DUMMY_1, DUMMY_2, DUMMY_3, DUMMY_4, DUMMY_5, DUMMY_6, DUMMY_7, DUMMY_8,
-		DUMMY_9, DUMMY_10, LOOKAHEADDUMMY
 	}
 	
 	private static final Map<String, TokenName> ReservedWords;

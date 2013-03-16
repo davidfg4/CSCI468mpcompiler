@@ -10,15 +10,20 @@ begin
 end;
 
 function testFunction:integer;
+var
+var1: integer;
+var2: float;
 begin
-	testProcedure(arg1, arg2);
+	testProcedure(var1, var2);
 end;
 
 begin
 	someFunction;
-	while var1 <> 5 do
+    a := b;
+    c := testFunction;
+	while a <> 5 do
 	begin
-		match(mulop);
-		factor
+		testProcedure(b, x);
+        testFunction
 	end
 end.
