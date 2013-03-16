@@ -18,7 +18,6 @@ public class Symbol {
 	public ParameterMode mode;
 	public List<Symbol> parameters;
 
-	// For variables and parameters
 	Symbol(String l, Kind k, Type t)
 	{
 		lexeme = l;
