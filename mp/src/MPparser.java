@@ -1378,10 +1378,6 @@ public class MPparser {
 		case MP_INTEGER_LIT:
 			match(Token.TokenName.MP_INTEGER_LIT);
 			break;
-		// Factor --> VariableIdentifier
-		case DUMMY_1:
-			variableIdentifier();
-			break;
 		// Factor --> "not" Factor
 		case MP_NOT:
 			match(Token.TokenName.MP_NOT);
