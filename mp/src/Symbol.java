@@ -17,7 +17,10 @@ public class Symbol {
 	public Type type;
 	public ParameterMode mode;
 	public List<Symbol> parameters;
-
+	public int size;
+	public int offset;
+	public String label;
+	
 	Symbol(String l, Kind k, Type t)
 	{
 		lexeme = l;
