@@ -7,10 +7,11 @@ public class MPparser {
 	private Token secondLookahead;
 	private MPscanner scanner;
 	private SymbolTable symbolTable;
+	private SemanticAnalyzer analyzer;
 	
-	//TODO: add rule numbers to each case comment
 
 	public MPparser(String filename) {
+		analyzer = new SemanticAnalyzer(this);
 		scanner = new MPscanner();
 		symbolTable = new SymbolTable();
 		secondLookahead = null;
@@ -73,6 +74,10 @@ public class MPparser {
 	{
 		System.err.println(error);
 		System.exit(1);
+	}
+	
+	public void semanticError(String error) {
+		System.err.println(scanner.getError(lookahead, "Semantic Error: ") + error);
 	}
 
 	/***************************************************************************
