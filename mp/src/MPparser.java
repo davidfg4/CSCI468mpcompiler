@@ -11,15 +11,16 @@ public class MPparser {
 	
 
 	public MPparser(String filename) {
-		analyzer = new SemanticAnalyzer(this);
 		scanner = new MPscanner();
 		symbolTable = new SymbolTable();
+		analyzer = new SemanticAnalyzer(this, symbolTable);
 		secondLookahead = null;
 		scanner.openFile(filename);
 		lookahead = scanner.getToken();
 		checkForScannerErrors(lookahead);
 		systemGoal();
 		System.out.println("Successfully parsed! No scanner or parser errors found.");
+		analyzer.writeMachineCodeToFile();
 	}
 
 	public static void main(String args[]) {
@@ -367,7 +368,7 @@ public class MPparser {
 			} catch (SymbolTable.SymbolAlreadyExistsException e) {
 				syntaxErrorGeneric("Error: Function '" + functionName + "' already exists in the current scope.");
 			}
-			functionIdentifier();
+			functionIdentifier(new Symbol());
 			optionalFormalParameterList();
 			match(Token.TokenName.MP_COLON);
 			type = type();
@@ -698,7 +699,7 @@ public class MPparser {
 		switch (lookahead.getToken()) {
 		// rule 46: ReadParameter --> VariableIdentifier
 		case MP_IDENTIFIER:
-			variableIdentifier();
+			variableIdentifier(new Symbol());
 			break;
 		default: 
 			syntaxErrorExpected("'identifier'(3)");
@@ -773,6 +774,8 @@ public class MPparser {
 	 * Post: AssignmentStatement is expanded
 	 */
 	private void assignmentStatement() {
+		Symbol idRecord = new Symbol();
+		Symbol exprRecord = new Symbol();
 		switch (lookahead.getToken()) {
 		// rule 51: AssignmentStatement --> VariableIdentifier ":=" Expression
 		// rule 52: AssignmentStatement --> FunctionIdentifier ":=" Expression
@@ -782,15 +785,19 @@ public class MPparser {
 				syntaxErrorGeneric("Error: Variable used before it is defined.");
 			} else if (assignedVar.kind == Symbol.Kind.VARIABLE  || assignedVar.kind == Symbol.Kind.PARAMETER) {
 				// rule 51: AssignmentStatement --> VariableIdentifier ":=" Expression
-				variableIdentifier();
+				variableIdentifier(idRecord);
 				match(Token.TokenName.MP_ASSIGN);
+				// TODO populate exprRecord
 				expression();
+				analyzer.genAssignStmt(idRecord, exprRecord);
 			} else if (assignedVar.kind == Symbol.Kind.FUNCTION) {
 				// rule 52: AssignmentStatement --> FunctionIdentifier ":=" Expression
 				// personal note: how do you assign something to a function? what is going on here?
-				functionIdentifier();
+				functionIdentifier(idRecord);
 				match(Token.TokenName.MP_ASSIGN);
+				// TODO populate exprRecord
 				expression();
+				analyzer.genAssignStmt(idRecord, exprRecord);	// ?? 
 			}
 			break;
 		default:
@@ -908,7 +915,7 @@ public class MPparser {
 		switch (lookahead.getToken()) {
 		// rule 59: ControlVariable --> VariableIdentifier
 		case MP_IDENTIFIER:
-			variableIdentifier();
+			variableIdentifier(new Symbol());
 			break;
 		default:
 			syntaxErrorExpected("'identifier'(4)");
@@ -1400,10 +1407,10 @@ public class MPparser {
 				syntaxErrorGeneric("Error: Variable used before it is defined.");
 			} else if (assignedVar.kind == Symbol.Kind.VARIABLE || assignedVar.kind == Symbol.Kind.PARAMETER) {
 				// Factor --> VariableIdentifier
-				variableIdentifier();
+				variableIdentifier(new Symbol());
 			} else if (assignedVar.kind == Symbol.Kind.FUNCTION) {
 				// Factor --> FunctionIdentifier OptionalActualParameterList
-				functionIdentifier();
+				functionIdentifier(new Symbol());
 				optionalActualParameterList();
 			}
 			break;
@@ -1436,10 +1443,12 @@ public class MPparser {
 	 * Pre: VariableIdentifier is leftmost nonterminal
 	 * Post: VariableIdentifier is expanded
 	 */
-	private void variableIdentifier() {
+	private void variableIdentifier(Symbol idRecord) {
 		switch (lookahead.getToken()) {
 		// rule 1-1: VariableIdentifier --> Identifier
 		case MP_IDENTIFIER:
+			idRecord.lexeme = lookahead.getLexeme();
+			idRecord.type = symbolTable.findSymbol(lookahead.getLexeme()).type;
 			match(Token.TokenName.MP_IDENTIFIER);
 			break;
 		default:
@@ -1468,10 +1477,12 @@ public class MPparser {
 	 * Pre: FunctionIdentifier is leftmost nonterminal
 	 * Post: FunctionIdentifier is expanded
 	 */
-	private void functionIdentifier() {
+	private void functionIdentifier(Symbol funIdRecord) {
 		switch (lookahead.getToken()) {
 		// rule 103: FunctionIdentifier --> Identifier
 		case MP_IDENTIFIER:
+			funIdRecord.lexeme = lookahead.getLexeme();
+			funIdRecord.type = symbolTable.findSymbol(lookahead.getLexeme()).type;
 			match(Token.TokenName.MP_IDENTIFIER);
 			break;
 		default:

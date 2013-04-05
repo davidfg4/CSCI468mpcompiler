@@ -8,9 +8,11 @@ public class SemanticAnalyzer {
 	private StringBuilder output = new StringBuilder();
 	private int labelNumber = 0;
 	private MPparser parser;
+	private SymbolTable symbolTable;
 	
-	public SemanticAnalyzer(MPparser parser) {
+	public SemanticAnalyzer(MPparser parser, SymbolTable table) {
 		this.parser = parser;
+		this.symbolTable = table;
 	}
 	
 	
@@ -34,12 +36,15 @@ public class SemanticAnalyzer {
 	}
 	
 	public void genAssignStmt(Symbol id, Symbol expr) {
-		if(id.type == expr.type){
-			// TODO stack-based or register based?
-		}
-		// TODO cast if possible
-		else {
+		// Not sure if using symbols for semantic records makes sense
+		// but they work since they have the pertinent information
+		if(id.type != expr.type){
+			// TODO cast if possible
 			parser.semanticError("Incompatible types encountered for assignement statement.");
+		}
+		else {
+			Symbol var = symbolTable.findSymbol(id.lexeme);
+			output.append("pop " + var.offset + "(D" + var.nestLevel + ")\n");
 		}
 	}
 
