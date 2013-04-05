@@ -5,9 +5,12 @@ import java.util.NoSuchElementException;
 public class SymbolTable {
 	private LinkedList<SubSymbolTable<String,Symbol>> symbolTables;
 	static private Symbol mostRecentFunctionOrParameter;
+	private int currentOffset, currentNestLevel;	// for recording offset/nest level for symbols
 	
 	SymbolTable() {
 		symbolTables = new LinkedList<SubSymbolTable<String,Symbol>>();
+		currentOffset = 0;
+		currentNestLevel = 0;
 	}
 	
 	public void insertSymbol(Symbol s) throws SymbolAlreadyExistsException {
@@ -15,6 +18,9 @@ public class SymbolTable {
 			if (symbolTables.getFirst().get(s.lexeme) != null) {
 				throw new SymbolAlreadyExistsException("Error: Symbol '" + s.lexeme + "' already exists in the current scope");
 			}
+			s.nestLevel = this.currentNestLevel;	// record nesting level
+			s.offset = this.currentOffset;			// record offset
+			currentOffset += s.size;				// update current offset by symbol size
 			symbolTables.getFirst().put(s.lexeme, s);
 			// If adding a parameter, also add it to the parameter list of the
 			// appropriate function or procedure.
@@ -38,12 +44,19 @@ public class SymbolTable {
 	}
 	
 	public void createSymbolTable(String name) {
+		symbolTables.getFirst().lastOffset = currentOffset;	// save offset for previous table
 		symbolTables.add(0, new SubSymbolTable<String,Symbol>(name));
+		currentNestLevel++;	// increase nest level
+		currentOffset = 0;	// reset offset
 	}
 	
 	public void deleteSymbolTable() {
 		try {
 			symbolTables.remove();
+			// It seems to me as though symbols cannot be added to parent tables after
+			// a new scope is created and then removed, but just in case:
+			currentNestLevel--;	// adjust nest level
+			currentOffset = symbolTables.getFirst().lastOffset;	// reset offset
 		} catch (NoSuchElementException e) {
 			System.err.println("Error: Attempted to remove a symbol table but there are none. :(");
 			System.exit(1);
@@ -74,6 +87,7 @@ public class SymbolTable {
 	@SuppressWarnings("serial")
 	private class SubSymbolTable<K,V> extends HashMap<K,V> {
 		public String name;
+		public int lastOffset;
 		SubSymbolTable(String n) {
 			super();
 			name = n;

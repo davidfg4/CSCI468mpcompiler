@@ -17,8 +17,7 @@ public class Symbol {
 	public Type type;
 	public ParameterMode mode;
 	public List<Symbol> parameters;
-	public int size;
-	public int offset;
+	public int size, offset, nestLevel;	// for semantics
 	public String label;
 	
 	Symbol(String l, Kind k, Type t)
@@ -28,6 +27,17 @@ public class Symbol {
 		type = t;
 		if (k == Kind.PROCEDURE || k == Kind.FUNCTION)
 			parameters = new ArrayList<Symbol>();
+		// The machine spec seems to indicate that ints, floats, 
+		// and strings all have size of 1, but the following
+		// should make for easy adjustment if this is not the case.
+		switch(type) {
+			case INTEGER:
+			case FLOAT:
+			case STRING:
+			case BOOLEAN:
+				size = 1;	
+				break;
+		}
 	}
 
 	public String toString() {
