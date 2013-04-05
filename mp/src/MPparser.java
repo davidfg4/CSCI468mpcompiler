@@ -780,7 +780,7 @@ public class MPparser {
 			Symbol assignedVar = symbolTable.findSymbol(lookahead.getLexeme());
 			if (assignedVar == null) {
 				syntaxErrorGeneric("Error: Variable used before it is defined.");
-			} else if (assignedVar.kind == Symbol.Kind.VARIABLE) {
+			} else if (assignedVar.kind == Symbol.Kind.VARIABLE  || assignedVar.kind == Symbol.Kind.PARAMETER) {
 				// rule 51: AssignmentStatement --> VariableIdentifier ":=" Expression
 				variableIdentifier();
 				match(Token.TokenName.MP_ASSIGN);
