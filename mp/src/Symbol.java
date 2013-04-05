@@ -20,7 +20,9 @@ public class Symbol {
 	public int size, offset, nestLevel;	// for semantics
 	public String label;
 	
-	Symbol(String l, Kind k, Type t)
+	public Symbol() {/*for semantic records */}
+	
+	public Symbol(String l, Kind k, Type t)
 	{
 		lexeme = l;
 		kind = k;

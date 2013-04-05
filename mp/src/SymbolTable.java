@@ -18,7 +18,7 @@ public class SymbolTable {
 			if (symbolTables.getFirst().get(s.lexeme) != null) {
 				throw new SymbolAlreadyExistsException("Error: Symbol '" + s.lexeme + "' already exists in the current scope");
 			}
-			s.nestLevel = this.currentNestLevel;	// record nesting level
+			s.nestLevel = currentNestLevel;			// record nesting level
 			s.offset = this.currentOffset;			// record offset
 			currentOffset += s.size;				// update current offset by symbol size
 			symbolTables.getFirst().put(s.lexeme, s);
@@ -44,9 +44,11 @@ public class SymbolTable {
 	}
 	
 	public void createSymbolTable(String name) {
-		symbolTables.getFirst().lastOffset = currentOffset;	// save offset for previous table
+		if(symbolTables.size() > 0) {
+			symbolTables.getFirst().lastOffset = currentOffset;	// save offset for previous table
+			currentNestLevel++;	// increase nest level
+		}
 		symbolTables.add(0, new SubSymbolTable<String,Symbol>(name));
-		currentNestLevel++;	// increase nest level
 		currentOffset = 0;	// reset offset
 	}
 	
@@ -56,7 +58,8 @@ public class SymbolTable {
 			// It seems to me as though symbols cannot be added to parent tables after
 			// a new scope is created and then removed, but just in case:
 			currentNestLevel--;	// adjust nest level
-			currentOffset = symbolTables.getFirst().lastOffset;	// reset offset
+			if(symbolTables.size() > 0)
+				currentOffset = symbolTables.getFirst().lastOffset;	// reset offset
 		} catch (NoSuchElementException e) {
 			System.err.println("Error: Attempted to remove a symbol table but there are none. :(");
 			System.exit(1);
