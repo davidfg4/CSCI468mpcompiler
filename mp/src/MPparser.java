@@ -760,6 +760,8 @@ public class MPparser {
 		case MP_MINUS:
 		case MP_IDENTIFIER:
 		case MP_INTEGER_LIT:
+		case MP_FLOAT_LIT:
+		case MP_FIXED_LIT:
 		case MP_NOT:
 			ordinalExpression();
 			break;
@@ -787,7 +789,6 @@ public class MPparser {
 				// rule 51: AssignmentStatement --> VariableIdentifier ":=" Expression
 				variableIdentifier(idRecord);
 				match(Token.TokenName.MP_ASSIGN);
-				// TODO populate exprRecord
 				expression(exprRecord);
 				analyzer.genAssignStmt(idRecord, exprRecord);
 			} else if (assignedVar.kind == Symbol.Kind.FUNCTION) {
@@ -795,7 +796,6 @@ public class MPparser {
 				// personal note: how do you assign something to a function? what is going on here?
 				functionIdentifier(idRecord);
 				match(Token.TokenName.MP_ASSIGN);
-				// TODO populate exprRecord
 				expression(exprRecord);
 				analyzer.genAssignStmt(idRecord, exprRecord);	// ?? 
 			}
@@ -1078,6 +1078,8 @@ public class MPparser {
 		case MP_MINUS:
 		case MP_IDENTIFIER:
 		case MP_INTEGER_LIT:
+		case MP_FLOAT_LIT:
+		case MP_FIXED_LIT:
 		case MP_NOT:
 			ordinalExpression();
 			break;
@@ -1099,6 +1101,8 @@ public class MPparser {
 		case MP_MINUS:
 		case MP_IDENTIFIER:
 		case MP_INTEGER_LIT:
+		case MP_FLOAT_LIT:
+		case MP_FIXED_LIT:
 		case MP_NOT:
 			simpleExpression(exprRec);
 			optionalRelationalPart();
@@ -1191,6 +1195,8 @@ public class MPparser {
 		case MP_MINUS:
 		case MP_IDENTIFIER:
 		case MP_INTEGER_LIT:
+		case MP_FLOAT_LIT:
+		case MP_FIXED_LIT:
 		case MP_NOT:
 			optionalSign();	// TODO signRec
 			term(record);
@@ -1264,6 +1270,8 @@ public class MPparser {
 		case MP_LPAREN:
 		case MP_IDENTIFIER:
 		case MP_INTEGER_LIT:
+		case MP_FLOAT_LIT:
+		case MP_FIXED_LIT:
 		case MP_NOT:
 			break;
 		default:
@@ -1307,6 +1315,8 @@ public class MPparser {
 		case MP_LPAREN:
 		case MP_IDENTIFIER:
 		case MP_INTEGER_LIT:
+		case MP_FLOAT_LIT:
+		case MP_FIXED_LIT:
 		case MP_NOT:
 			factor(termRec);
 			factorTail(termRec);
@@ -1404,6 +1414,16 @@ public class MPparser {
 			match(Token.TokenName.MP_INTEGER_LIT);
 			factorRec.type = Symbol.Type.INTEGER;
 			// TODO #analyzer.genPushInt(factorRec);
+			break;
+		// rule 113: Factor --> UnsignedFloat
+		case MP_FLOAT_LIT:
+			match(Token.TokenName.MP_FLOAT_LIT);
+			factorRec.type = Symbol.Type.FLOAT;
+			break;
+		// rule 113: Factor --> UnsignedFloat
+		case MP_FIXED_LIT: 
+			match(Token.TokenName.MP_FIXED_LIT);
+			factorRec.type = Symbol.Type.FLOAT;
 			break;
 		// Factor --> "not" Factor
 		case MP_NOT:
@@ -1518,7 +1538,9 @@ public class MPparser {
 		case MP_PLUS:
 		case MP_MINUS:
 		case MP_IDENTIFIER:
-		case MP_INTEGER_LIT:
+		case MP_INTEGER_LIT:	// These seem odd
+		case MP_FLOAT_LIT:		// ?
+		case MP_FIXED_LIT:		// ?
 		case MP_NOT:
 			expression(new Symbol());
 			break;
@@ -1540,6 +1562,8 @@ public class MPparser {
 		case MP_MINUS:
 		case MP_IDENTIFIER:
 		case MP_INTEGER_LIT:
+		case MP_FLOAT_LIT:
+		case MP_FIXED_LIT:
 		case MP_NOT:
 			expression(new Symbol());
 			break;
