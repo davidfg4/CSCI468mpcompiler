@@ -782,13 +782,13 @@ public class MPparser {
 		case MP_IDENTIFIER:
 			Symbol assignedVar = symbolTable.findSymbol(lookahead.getLexeme());
 			if (assignedVar == null) {
-				syntaxErrorGeneric("Error: Variable used before it is defined.");
+				semanticError("Undeclared identifier.");
 			} else if (assignedVar.kind == Symbol.Kind.VARIABLE  || assignedVar.kind == Symbol.Kind.PARAMETER) {
 				// rule 51: AssignmentStatement --> VariableIdentifier ":=" Expression
 				variableIdentifier(idRecord);
 				match(Token.TokenName.MP_ASSIGN);
 				// TODO populate exprRecord
-				expression();
+				expression(exprRecord);
 				analyzer.genAssignStmt(idRecord, exprRecord);
 			} else if (assignedVar.kind == Symbol.Kind.FUNCTION) {
 				// rule 52: AssignmentStatement --> FunctionIdentifier ":=" Expression
@@ -796,7 +796,7 @@ public class MPparser {
 				functionIdentifier(idRecord);
 				match(Token.TokenName.MP_ASSIGN);
 				// TODO populate exprRecord
-				expression();
+				expression(exprRecord);
 				analyzer.genAssignStmt(idRecord, exprRecord);	// ?? 
 			}
 			break;
@@ -1091,7 +1091,7 @@ public class MPparser {
 	 * Pre: Expression is leftmost nonterminal
 	 * Post: Expression is expanded
 	 */
-	private void expression() {
+	private void expression(Symbol exprRec) {
 		switch (lookahead.getToken()) {
 		// rule 70: Expression --> SimpleExpression OptionalRelationalPart
 		case MP_LPAREN:
@@ -1100,7 +1100,7 @@ public class MPparser {
 		case MP_IDENTIFIER:
 		case MP_INTEGER_LIT:
 		case MP_NOT:
-			simpleExpression();
+			simpleExpression(exprRec);
 			optionalRelationalPart();
 			break;
 		default:
@@ -1123,7 +1123,7 @@ public class MPparser {
 		case MP_GEQUAL:
 		case MP_NEQUAL:
 			relationalOperator();
-			simpleExpression();
+			simpleExpression(new Symbol());
 			break;
 		// rule 72: OptionalRelationalPart --> epsilon
 		case MP_COMMA:
@@ -1183,7 +1183,7 @@ public class MPparser {
 	 * Pre: SimpleExpression is leftmost nonterminal
 	 * Post: SimpleExpression is expanded
 	 */
-	private void simpleExpression() {
+	private void simpleExpression(Symbol record) {
 		switch (lookahead.getToken()) {
 		// rule 79: SimpleExpression --> OptionalSign Term TermTail
 		case MP_LPAREN:
@@ -1192,9 +1192,9 @@ public class MPparser {
 		case MP_IDENTIFIER:
 		case MP_INTEGER_LIT:
 		case MP_NOT:
-			optionalSign();
-			term();
-			termTail();
+			optionalSign();	// TODO signRec
+			term(record);
+			termTail(record);
 			break;
 		default:
 			syntaxErrorExpected("an expression");
@@ -1206,15 +1206,20 @@ public class MPparser {
 	 * Pre: TermTail is leftmost nonterminal
 	 * Post: TermTail is expanded
 	 */
-	private void termTail() {
+	private void termTail(Symbol leftSideRec) {
+		Symbol rightSideRec = new Symbol();
+		Symbol operatorRec = new Symbol();
+		Symbol resultRec = new Symbol();	
 		switch (lookahead.getToken()) {
 		// rule 80: TermTail --> AddingOperator Term TermTail
 		case MP_PLUS:
 		case MP_MINUS:
 		case MP_OR:
-			addingOperator();
-			term();
-			termTail();
+			addingOperator(operatorRec);
+			term(rightSideRec);
+			// TODO #generate arithmetic(leftSideRec, operatorRec, rightSideRec, resultRec)
+			termTail(resultRec);
+			leftSideRec = resultRec;	// return sub-expression type
 			break;
 		// rule 81: TermTail --> epsilon
 		case MP_COMMA:
@@ -1253,6 +1258,7 @@ public class MPparser {
 		// rule 83: OptionalSign --> "-"
 		case MP_MINUS:
 			match(Token.TokenName.MP_MINUS);
+			// TODO signRec.negative = true;
 			break;
 		// rule 84: OptionalSign --> epsilon
 		case MP_LPAREN:
@@ -1270,7 +1276,8 @@ public class MPparser {
 	 * Pre: AddingOperator is leftmost nonterminal
 	 * Post: AddingOperator is expanded
 	 */
-	private void addingOperator() {
+	private void addingOperator(Symbol operatorRec) {
+		operatorRec.lexeme = lookahead.getLexeme();	// return operator type
 		switch (lookahead.getToken()) {
 		// rule 85: AddingOperator --> "+"
 		case MP_PLUS:
@@ -1294,15 +1301,15 @@ public class MPparser {
 	 * Pre: Term is leftmost nonterminal
 	 * Post: Term is expanded
 	 */
-	private void term() {
+	private void term(Symbol termRec) {
 		switch (lookahead.getToken()) {
 		// rule 88: Term --> Factor FactorTail
 		case MP_LPAREN:
 		case MP_IDENTIFIER:
 		case MP_INTEGER_LIT:
 		case MP_NOT:
-			factor();
-			factorTail();
+			factor(termRec);
+			factorTail(termRec);
 			break;
 		default:
 			syntaxErrorExpected("a term");
@@ -1314,16 +1321,21 @@ public class MPparser {
 	 * Pre: FactorTail is leftmost nonterminal
 	 * Post: FactorTail is expanded
 	 */
-	private void factorTail() {
+	private void factorTail(Symbol leftSideRec) {
+		Symbol rightSideRec = new Symbol();
+		Symbol operatorRec = new Symbol();
+		Symbol resultRec = new Symbol();
 		switch (lookahead.getToken()) {
 		// rule 89: FactorTail --> MultiplyingOperator Factor FactorTail
 		case MP_TIMES:
 		case MP_AND:
 		case MP_DIV:
 		case MP_MOD:
-			multiplyingOperator();
-			factor();
-			factorTail();
+			multiplyingOperator(operatorRec);
+			factor(rightSideRec);
+			// TODO #generate arithmetic(leftSideRec, operatorRec, rightSideRec, resultRec)
+			factorTail(resultRec);
+			leftSideRec = resultRec; // return sub-expression type
 			break;
 		// rule 90: FactorTail --> epsilon
 		case MP_COMMA:
@@ -1356,7 +1368,8 @@ public class MPparser {
 	 * Pre: MultiplyingOperator is leftmost nonterminal
 	 * Post: MultiplnyingOperator is expanded
 	 */
-	private void multiplyingOperator() {
+	private void multiplyingOperator(Symbol operatorRec) {
+		operatorRec.lexeme = lookahead.getLexeme();	// return operator type
 		switch (lookahead.getToken()) {
 		// rule 91: MultiplyingOperator --> "*"
 		case MP_TIMES:
@@ -1384,30 +1397,33 @@ public class MPparser {
 	 * Pre: Factor is leftmost nonterminal
 	 * Post: Factor is expanded
 	 */
-	private void factor() {
+	private void factor(Symbol factorRec) {
 		switch (lookahead.getToken()) {
 		// Factor --> UnsignedInteger
 		case MP_INTEGER_LIT:
 			match(Token.TokenName.MP_INTEGER_LIT);
+			factorRec.type = Symbol.Type.INTEGER;
+			// TODO #analyzer.genPushInt(factorRec);
 			break;
 		// Factor --> "not" Factor
 		case MP_NOT:
 			match(Token.TokenName.MP_NOT);
-			factor();
+			factor(factorRec);
 			break;
 		// Factor --> "(" Expression ")"
 		case MP_LPAREN:
 			match(Token.TokenName.MP_LPAREN);
-			expression();
+			expression(factorRec);
 			match(Token.TokenName.MP_RPAREN);
 			break;
 		case MP_IDENTIFIER:
 			Symbol assignedVar = symbolTable.findSymbol(lookahead.getLexeme());
 			if (assignedVar == null) {
-				syntaxErrorGeneric("Error: Variable used before it is defined.");
+				semanticError("Undeclared identifier.");
 			} else if (assignedVar.kind == Symbol.Kind.VARIABLE || assignedVar.kind == Symbol.Kind.PARAMETER) {
 				// Factor --> VariableIdentifier
-				variableIdentifier(new Symbol());
+				variableIdentifier(factorRec);
+				// TODO #analyzer.genPushId(factorRec, new Symbol());
 			} else if (assignedVar.kind == Symbol.Kind.FUNCTION) {
 				// Factor --> FunctionIdentifier OptionalActualParameterList
 				functionIdentifier(new Symbol());
@@ -1504,7 +1520,7 @@ public class MPparser {
 		case MP_IDENTIFIER:
 		case MP_INTEGER_LIT:
 		case MP_NOT:
-			expression();
+			expression(new Symbol());
 			break;
 		default:
 			syntaxErrorExpected("a boolean expression");
@@ -1525,7 +1541,7 @@ public class MPparser {
 		case MP_IDENTIFIER:
 		case MP_INTEGER_LIT:
 		case MP_NOT:
-			expression();
+			expression(new Symbol());
 			break;
 		default:
 			syntaxErrorExpected("a ordianl expression");
