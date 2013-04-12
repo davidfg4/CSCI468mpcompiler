@@ -69,16 +69,38 @@ public class SemanticAnalyzer {
 	 * @param resultRec
 	 */
 	public void genArithmetic(Symbol leftRec, Symbol opRec, Symbol rightRec, Symbol resultRec) {
+		String operation = null;
+		switch(opRec.lexeme) {
+			case "+":
+				operation = "adds";
+				break;
+			case "-":
+				operation = "subs";
+				break;
+			case "*":
+				operation = "muls";
+				break;
+			case "div":
+				operation = "divs";
+				break;
+	//		case "/":
+	//			operation = "divs";	// Not sure how this will work..
+	//			break;
+		}
+		
 		if(leftRec.type == rightRec.type) {
 			resultRec.type = leftRec.type;
+			output.append(operation+"\n");
 		}
 		else if(leftRec.type == Symbol.Type.FLOAT && rightRec.type == Symbol.Type.INTEGER) {
 			// TODO  implement cast
 			resultRec.type = Symbol.Type.FLOAT;
+			output.append(operation + "f\n");
 		}
 		else if(leftRec.type == Symbol.Type.INTEGER && rightRec.type == Symbol.Type.FLOAT) {
 			// TODO implement cast
 			resultRec.type = Symbol.Type.FLOAT;
+			output.append(operation + "f\n");
 		}
 	}
 	
@@ -89,6 +111,7 @@ public class SemanticAnalyzer {
 	public void genPushId(Symbol idRec) {
 		Symbol var = symbolTable.findSymbol(idRec.lexeme);
 		// TODO check that variable is proper type to push
+		output.append("push " + var.offset + "(D" + var.nestLevel + ")\n");
 	}
 	
 	/**
@@ -97,6 +120,6 @@ public class SemanticAnalyzer {
 	 */
 	public void genPushLiteral(Symbol literalRec) {
 		// TODO semantic checks? 
+		output.append("push " + literalRec.lexeme + "\n");	// Push literal
 	}
-
 }
