@@ -1187,7 +1187,9 @@ public class MPparser {
 	 * Pre: SimpleExpression is leftmost nonterminal
 	 * Post: SimpleExpression is expanded
 	 */
-	private void simpleExpression(Symbol record) {
+	private void simpleExpression(Symbol exprRec) {
+		Symbol termRec = new Symbol();
+		Symbol termTailRec = new Symbol();
 		switch (lookahead.getToken()) {
 		// rule 79: SimpleExpression --> OptionalSign Term TermTail
 		case MP_LPAREN:
@@ -1199,8 +1201,10 @@ public class MPparser {
 		case MP_FIXED_LIT:
 		case MP_NOT:
 			optionalSign();	// TODO signRec
-			term(record);
-			termTail(record);
+			term(termRec);
+			analyzer.copy(termRec, termTailRec); 	// pass LHS (termRec) type down
+			termTail(termTailRec);
+			analyzer.copy(termTailRec, exprRec);	// pass result (termTailRec) up
 			break;
 		default:
 			syntaxErrorExpected("an expression");
@@ -1223,9 +1227,9 @@ public class MPparser {
 		case MP_OR:
 			addingOperator(operatorRec);
 			term(rightSideRec);
-			// TODO #generate arithmetic(leftSideRec, operatorRec, rightSideRec, resultRec)
+			analyzer.genArithmetic(leftSideRec, operatorRec, rightSideRec, resultRec);
 			termTail(resultRec);
-			leftSideRec = resultRec;	// return sub-expression type
+			analyzer.copy(resultRec, leftSideRec);	// Pass sub-expression (resultRec) type up
 			break;
 		// rule 81: TermTail --> epsilon
 		case MP_COMMA:
@@ -1343,9 +1347,9 @@ public class MPparser {
 		case MP_MOD:
 			multiplyingOperator(operatorRec);
 			factor(rightSideRec);
-			// TODO #generate arithmetic(leftSideRec, operatorRec, rightSideRec, resultRec)
+			analyzer.genArithmetic(leftSideRec, operatorRec, rightSideRec, resultRec);
 			factorTail(resultRec);
-			leftSideRec = resultRec; // return sub-expression type
+			analyzer.copy(resultRec, leftSideRec);	// Pass sub-expression (resultRec) type up
 			break;
 		// rule 90: FactorTail --> epsilon
 		case MP_COMMA:
@@ -1411,19 +1415,24 @@ public class MPparser {
 		switch (lookahead.getToken()) {
 		// Factor --> UnsignedInteger
 		case MP_INTEGER_LIT:
-			match(Token.TokenName.MP_INTEGER_LIT);
 			factorRec.type = Symbol.Type.INTEGER;
-			// TODO #analyzer.genPushInt(factorRec);
+			factorRec.lexeme = lookahead.getLexeme();
+			analyzer.genPushLiteral(factorRec);
+			match(Token.TokenName.MP_INTEGER_LIT);
 			break;
 		// rule 113: Factor --> UnsignedFloat
 		case MP_FLOAT_LIT:
-			match(Token.TokenName.MP_FLOAT_LIT);
 			factorRec.type = Symbol.Type.FLOAT;
+			factorRec.lexeme = lookahead.getLexeme();
+			analyzer.genPushLiteral(factorRec);
+			match(Token.TokenName.MP_FLOAT_LIT);
 			break;
 		// rule 113: Factor --> UnsignedFloat
 		case MP_FIXED_LIT: 
-			match(Token.TokenName.MP_FIXED_LIT);
 			factorRec.type = Symbol.Type.FLOAT;
+			factorRec.lexeme = lookahead.getLexeme();
+			analyzer.genPushLiteral(factorRec);
+			match(Token.TokenName.MP_FIXED_LIT);
 			break;
 		// Factor --> "not" Factor
 		case MP_NOT:
@@ -1443,7 +1452,7 @@ public class MPparser {
 			} else if (assignedVar.kind == Symbol.Kind.VARIABLE || assignedVar.kind == Symbol.Kind.PARAMETER) {
 				// Factor --> VariableIdentifier
 				variableIdentifier(factorRec);
-				// TODO #analyzer.genPushId(factorRec, new Symbol());
+				analyzer.genPushId(factorRec);
 			} else if (assignedVar.kind == Symbol.Kind.FUNCTION) {
 				// Factor --> FunctionIdentifier OptionalActualParameterList
 				functionIdentifier(new Symbol());
