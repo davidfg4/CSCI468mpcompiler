@@ -9,6 +9,8 @@ public class SemanticAnalyzer {
 	private int labelNumber = 0;
 	private MPparser parser;
 	private SymbolTable symbolTable;
+	// TODO at some point we should probably clear output if errors encountered; 
+	// shouldn't emit erroneous code but it seems it might be useful for testing for now
 	
 	public SemanticAnalyzer(MPparser parser, SymbolTable table) {
 		this.parser = parser;
@@ -51,14 +53,17 @@ public class SemanticAnalyzer {
 	 * @param expr
 	 */
 	public void genAssignStmt(Symbol id, Symbol expr) {
-		if(id.type != expr.type){
-			// TODO cast if possible
+		if(id.type == Symbol.Type.FLOAT && expr.type == Symbol.Type.INTEGER) {
+			output.append("castsf\n");	// cast expression result (stack top) to float to assign to id
+		}
+		else if(id.type == Symbol.Type.INTEGER && expr.type == Symbol.Type.FLOAT) {
+			output.append("castsi\n");	// cast expression result to integer to assign to id
+		}
+		else if(id.type != expr.type)
 			parser.semanticError("Incompatible types encountered for assignement statement: " + id.type + " := " + expr.type);
-		}
-		else {
-			Symbol var = symbolTable.findSymbol(id.lexeme);
-			output.append("pop " + var.offset + "(D" + var.nestLevel + ")\n" );
-		}
+		Symbol var = symbolTable.findSymbol(id.lexeme);
+		// assuming parser will catch undeclared id's so no need to null check
+		output.append("pop " + var.offset + "(D" + var.nestLevel + ")\n" );
 	}
 	
 	/**
