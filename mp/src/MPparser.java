@@ -20,7 +20,7 @@ public class MPparser {
 		checkForScannerErrors(lookahead);
 		systemGoal();
 		System.out.println("Successfully parsed! No scanner or parser errors found.");
-		analyzer.writeMachineCodeToFile();
+		analyzer.writeMachineCodeToFile(filename);
 	}
 
 	public static void main(String args[]) {

@@ -22,15 +22,15 @@ public class SemanticAnalyzer {
 		return "L" + labelNumber++;
 	}
 	
-	public void writeMachineCodeToFile() {
-		String fileName = "a.out";
-		File outputFile = new File(fileName);
+	public void writeMachineCodeToFile(String filename) {
+		filename = filename.split("\\.")[0] + ".s";
+		File outputFile = new File(filename);
 		PrintWriter writer = null;
 		try {
 			writer = new PrintWriter(outputFile);
 			writer.print(output);
 		}
-		catch(FileNotFoundException fnfe) { System.err.println("Error wile writing output file " + fileName); }
+		catch(FileNotFoundException fnfe) { System.err.println("Error wile writing output file " + filename); }
 		finally { 
 			if(writer != null)
 				writer.close();
