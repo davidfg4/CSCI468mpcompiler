@@ -544,6 +544,7 @@ public class MPparser {
 		case MP_UNTIL:
 		case MP_WHILE:
 		case MP_WRITE:
+		case MP_WRITELN:
 			statement();
 			statementTail();
 			break;
@@ -598,6 +599,7 @@ public class MPparser {
 			break;
 		// rule 35: Statement --> WriteStatement
 		case MP_WRITE:
+		case MP_WRITELN:
 			writeStatement();
 			break;
 		// rule 36: Statement --> AssignmentStatement
@@ -714,15 +716,21 @@ public class MPparser {
 	private void writeStatement() {
 		switch (lookahead.getToken()) {
 		// rule 47: WriteStatement --> "write" "(" WriteParameter WriteParameterTail ")"
+		// rule 111: WriteStatement --> "writeln" "(" WriteParameter WriteParameterTail ")"
 		case MP_WRITE:
-			match(Token.TokenName.MP_WRITE);
+		case MP_WRITELN:
+			boolean isWriteLn = lookahead.getToken() == Token.TokenName.MP_WRITELN;
+			if(isWriteLn)
+				match(Token.TokenName.MP_WRITELN);
+			else
+				match(Token.TokenName.MP_WRITE);
 			match(Token.TokenName.MP_LPAREN);
 			writeParameter();
 			writeParameterTail();
 			match(Token.TokenName.MP_RPAREN);
 			break;
 		default:
-			syntaxErrorExpected("'write'");
+			syntaxErrorExpected("'write' or 'writeln'");
 			break;
 		}
 	}
