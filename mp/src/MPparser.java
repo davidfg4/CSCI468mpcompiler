@@ -725,8 +725,8 @@ public class MPparser {
 			else
 				match(Token.TokenName.MP_WRITE);
 			match(Token.TokenName.MP_LPAREN);
-			writeParameter();
-			writeParameterTail();
+			writeParameter(isWriteLn);
+			writeParameterTail(isWriteLn);
 			match(Token.TokenName.MP_RPAREN);
 			break;
 		default:
@@ -739,13 +739,13 @@ public class MPparser {
 	 * Pre: WriteParameterTail is leftmost nonterminal
 	 * Post: WriteParameterTail is expanded
 	 */
-	private void writeParameterTail() {
+	private void writeParameterTail(boolean writeLn) {
 		switch (lookahead.getToken()) {
 		// rule 48: WriteParameterTail --> "," WriteParameter WriteParameterTail
 		case MP_COMMA:
 			match(Token.TokenName.MP_COMMA);
-			writeParameter();
-			writeParameterTail();
+			writeParameter(writeLn);
+			writeParameterTail(writeLn);
 			break;
 		// rule 49: WriteParameterTail --> epsilon
 		case MP_RPAREN:
@@ -760,7 +760,7 @@ public class MPparser {
 	 * Pre: WriteParameter is leftmost nonterminal
 	 * Post: WriteParameter is expanded
 	 */
-	private void writeParameter() {
+	private void writeParameter(boolean writeLn) {
 		switch (lookahead.getToken()) {
 		// rule 50: WriteParameter --> OrdinalExpression
 		case MP_LPAREN:
@@ -772,6 +772,7 @@ public class MPparser {
 		case MP_FIXED_LIT:
 		case MP_NOT:
 			ordinalExpression();
+			analyzer.genWriteStmt(writeLn);	// value of param expression should be on stack top
 			break;
 		default:
 			syntaxErrorExpected("an expression");

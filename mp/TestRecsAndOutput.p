@@ -13,11 +13,12 @@ var
     begin
       nested2 := nested1+(x+2)*y;
       nested1 := nested2;
+      write(nested2, nested1, x, y, z);
     end;
 begin
   bar := x*y+z;
-  baz := 2+x+y*10;
-  
+  baz := 2*(x+y)+bar*10;
+  writeln(bar, baz, x);
 end;
 begin
 end.

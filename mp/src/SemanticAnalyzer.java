@@ -127,4 +127,12 @@ public class SemanticAnalyzer {
 		// TODO semantic checks? 
 		output.append("push " + literalRec.lexeme + "\n");	// Push literal
 	}
+	
+	/**
+	 * Generates code to write (and pop) current value of stack
+	 */
+	public void genWriteStmt(boolean writeLn) {
+		String statement = writeLn ? "wrtlns\n" : "wrts\n";
+		output.append(statement);
+	}
 }
