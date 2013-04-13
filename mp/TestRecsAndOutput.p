@@ -11,6 +11,7 @@ var
     nested1: integer;
     nested2: float;
     begin
+      read(x,y,z,bar,baz,nested1,nested2);
       nested2 := nested1+(x+2)*y;
       nested1 := nested2;
       write(nested2, nested1, x, y, z);

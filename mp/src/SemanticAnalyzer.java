@@ -124,7 +124,6 @@ public class SemanticAnalyzer {
 	 * @param literalRec
 	 */
 	public void genPushLiteral(Symbol literalRec) {
-		// TODO semantic checks? 
 		output.append("push " + literalRec.lexeme + "\n");	// Push literal
 	}
 	
@@ -134,5 +133,14 @@ public class SemanticAnalyzer {
 	public void genWriteStmt(boolean writeLn) {
 		String statement = writeLn ? "wrtlns\n" : "wrts\n";
 		output.append(statement);
+	}
+	
+	/**
+	 * Generates code to read a value from command line and store into variable
+	 * @param paramRec
+	 */
+	public void genReadStmt(Symbol paramRec) {
+		Symbol var = symbolTable.findSymbol(paramRec.lexeme);
+		output.append("rd " + var.offset + "(D" + var.nestLevel + ")\n");
 	}
 }

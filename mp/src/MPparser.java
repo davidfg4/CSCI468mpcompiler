@@ -698,10 +698,12 @@ public class MPparser {
 	 * Post: ReadParameter is expanded
 	 */
 	private void readParameter() {
+		Symbol readParamRec = new Symbol();
 		switch (lookahead.getToken()) {
 		// rule 46: ReadParameter --> VariableIdentifier
 		case MP_IDENTIFIER:
-			variableIdentifier(new Symbol());
+			variableIdentifier(readParamRec);
+			analyzer.genReadStmt(readParamRec);
 			break;
 		default: 
 			syntaxErrorExpected("'identifier'(3)");
