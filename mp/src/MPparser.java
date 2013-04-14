@@ -1116,7 +1116,7 @@ public class MPparser {
 		case MP_FIXED_LIT:
 		case MP_NOT:
 			simpleExpression(exprRec);
-			optionalRelationalPart();
+			optionalRelationalPart(exprRec);
 			break;
 		default:
 			syntaxErrorExpected("an expression");
@@ -1128,7 +1128,10 @@ public class MPparser {
 	 * Pre: OptionalRelationalPart is leftmost nonterminal
 	 * Post: OptionalRelationalPart is expanded
 	 */
-	private void optionalRelationalPart() {
+	private void optionalRelationalPart(Symbol leftSideRec) {
+		Symbol relOp = new Symbol();
+		Symbol rightSideRec = new Symbol();
+		Symbol resultRec = new Symbol();
 		switch (lookahead.getToken()) {
 		// rule 71: OptionalRelationalPart --> RelationalOperator SimpleExpression
 		case MP_EQUAL:
@@ -1137,8 +1140,10 @@ public class MPparser {
 		case MP_LEQUAL:
 		case MP_GEQUAL:
 		case MP_NEQUAL:
-			relationalOperator();
-			simpleExpression(new Symbol());
+			relationalOperator(relOp);
+			simpleExpression(rightSideRec);
+			analyzer.genArithmetic(leftSideRec, relOp, rightSideRec, resultRec);
+			analyzer.copy(resultRec, leftSideRec);
 			break;
 		// rule 72: OptionalRelationalPart --> epsilon
 		case MP_COMMA:
@@ -1162,7 +1167,8 @@ public class MPparser {
 	 * Pre: RelationalOperator is leftmost nonterminal
 	 * Post: RelationalOperator is expanded
 	 */
-	private void relationalOperator() {
+	private void relationalOperator(Symbol relOp) {
+		relOp.lexeme = lookahead.getLexeme();
 		switch (lookahead.getToken()) {
 		// rule 73: RelationalOperator --> "="
 		case MP_EQUAL:
@@ -1447,6 +1453,7 @@ public class MPparser {
 			break;
 		// Factor --> "not" Factor
 		case MP_NOT:
+			factorRec.negative = true;
 			match(Token.TokenName.MP_NOT);
 			factor(factorRec);
 			break;

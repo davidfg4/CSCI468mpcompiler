@@ -75,7 +75,8 @@ public class SemanticAnalyzer {
 	 */
 	public void genArithmetic(Symbol leftRec, Symbol opRec, Symbol rightRec, Symbol resultRec) {
 		String operation = null;
-		switch(opRec.lexeme) {
+		boolean booleanOp = false;
+		switch(opRec.lexeme.toLowerCase()) {
 			case "+":
 				operation = "adds";
 				break;
@@ -88,25 +89,60 @@ public class SemanticAnalyzer {
 			case "div":
 				operation = "divs";
 				break;
-	//		case "/":
-	//			operation = "divs";	// Not sure how this will work..
-	//			break;
+//			case "/":
+//				operation = "divs";	// Not sure how this will work..
+//				break;
+			case "=":
+				operation = "cmpeqs";
+				break;
+			case ">=":
+				operation = "cmpges";
+				break;
+			case ">":
+				operation = "cmpgts";
+				break;
+			case "<=":
+				operation = "cmples";
+				break;
+			case "<":
+				operation = "cmplts";
+				break;
+			case "<>":
+				operation = "cmpnes";
+				break;
+			case "and":
+				operation = "ands";
+				booleanOp = true;
+				break;
+			case "or":
+				operation = "ors";
+				booleanOp = true;
+				break;
 		}
-		
-		if(leftRec.type == rightRec.type) {
-			resultRec.type = leftRec.type;
+		if(booleanOp && leftRec.type == Symbol.Type.BOOLEAN && rightRec.type == Symbol.Type.BOOLEAN) {
 			output.append(operation+"\n");
+			resultRec.type = leftRec.type;
 		}
-		else if(leftRec.type == Symbol.Type.FLOAT && rightRec.type == Symbol.Type.INTEGER) {
-			// TODO  implement cast
-			resultRec.type = Symbol.Type.FLOAT;
-			output.append(operation + "f\n");
+		else if(!booleanOp){
+			if(leftRec.type == rightRec.type) {
+				resultRec.type = leftRec.type;
+				output.append(operation+"\n");
+			}
+			else if(leftRec.type == Symbol.Type.FLOAT && rightRec.type == Symbol.Type.INTEGER) {
+				// TODO  implement cast
+				resultRec.type = Symbol.Type.FLOAT;
+				output.append(operation + "f\n");
+			}
+			else if(leftRec.type == Symbol.Type.INTEGER && rightRec.type == Symbol.Type.FLOAT) {
+				// TODO implement cast
+				resultRec.type = Symbol.Type.FLOAT;
+				output.append(operation + "f\n");
+			}
+			else if(leftRec.type != rightRec.type) 
+				parser.semanticError("Incompatible types encountered for expression");
 		}
-		else if(leftRec.type == Symbol.Type.INTEGER && rightRec.type == Symbol.Type.FLOAT) {
-			// TODO implement cast
-			resultRec.type = Symbol.Type.FLOAT;
-			output.append(operation + "f\n");
-		}
+		else 
+			parser.semanticError("Incompatible types encountered for expression");
 	}
 	
 	/**
