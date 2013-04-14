@@ -166,11 +166,21 @@ public class SemanticAnalyzer {
 	}
 	
 	/**
-	 * Generates code to push literal onto stack
+	 * Generates code to push primitive literal onto stack
 	 * @param literalRec
 	 */
 	public void genPushLiteral(Symbol literalRec) {
-		output.append("push " + literalRec.lexeme + "\n");	// Push literal
+		output.append("push #" + literalRec.lexeme + "\n");	// Push primitive literal
+	}
+	
+	/**
+	 * Translates "true" to 1 and "false" to 0 and generates code
+	 * to push relevant value onto stack
+	 * @param boolLit
+	 */
+	public void genPushBoolLit(Symbol boolLit) {
+		String bool = boolLit.lexeme.equalsIgnoreCase("true") ? "1" : "0";
+		output.append("push #" + bool + "\n");
 	}
 	
 	/**

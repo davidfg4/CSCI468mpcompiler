@@ -1095,6 +1095,8 @@ public class MPparser {
 		case MP_INTEGER_LIT:
 		case MP_FLOAT_LIT:
 		case MP_FIXED_LIT:
+		case MP_TRUE:
+		case MP_FALSE:
 		case MP_NOT:
 			ordinalExpression();
 			break;
@@ -1118,6 +1120,8 @@ public class MPparser {
 		case MP_INTEGER_LIT:
 		case MP_FLOAT_LIT:
 		case MP_FIXED_LIT:
+		case MP_TRUE:
+		case MP_FALSE:
 		case MP_NOT:
 			simpleExpression(exprRec);
 			optionalRelationalPart(exprRec);
@@ -1220,8 +1224,10 @@ public class MPparser {
 		case MP_INTEGER_LIT:
 		case MP_FLOAT_LIT:
 		case MP_FIXED_LIT:
-		case MP_NOT:
 			optionalSign(termRec);
+		case MP_NOT:					// No sign for true, false, not..
+		case MP_TRUE:
+		case MP_FALSE:
 			term(termRec);
 			analyzer.copy(termRec, termTailRec); 	// pass LHS (termRec) type down
 			termTail(termTailRec);
@@ -1342,6 +1348,8 @@ public class MPparser {
 		case MP_INTEGER_LIT:
 		case MP_FLOAT_LIT:
 		case MP_FIXED_LIT:
+		case MP_TRUE:
+		case MP_FALSE:
 		case MP_NOT:
 			factor(termRec);
 			factorTail(termRec);
@@ -1454,6 +1462,20 @@ public class MPparser {
 			factorRec.lexeme = lookahead.getLexeme();
 			analyzer.genPushLiteral(factorRec);
 			match(Token.TokenName.MP_FIXED_LIT);
+			break;
+		// rule 115: Factor --> "True"
+		case MP_TRUE:
+			factorRec.type = Symbol.Type.BOOLEAN;
+			factorRec.lexeme = lookahead.getLexeme();
+			analyzer.genPushBoolLit(factorRec);
+			match(Token.TokenName.MP_TRUE);
+			break;
+		// rule 116: Factor --> "False"
+		case MP_FALSE:
+			factorRec.type = Symbol.Type.BOOLEAN;
+			factorRec.lexeme = lookahead.getLexeme();
+			analyzer.genPushBoolLit(factorRec);
+			match(Token.TokenName.MP_FALSE);
 			break;
 		// Factor --> "not" Factor
 		case MP_NOT:
@@ -1572,6 +1594,8 @@ public class MPparser {
 		case MP_INTEGER_LIT:
 		case MP_FLOAT_LIT:	
 		case MP_FIXED_LIT:	
+		case MP_TRUE:
+		case MP_FALSE:
 		case MP_NOT:
 			expression(exprRec);
 			break;
@@ -1595,6 +1619,8 @@ public class MPparser {
 		case MP_INTEGER_LIT:
 		case MP_FLOAT_LIT:
 		case MP_FIXED_LIT:
+		case MP_TRUE:
+		case MP_FALSE:
 		case MP_NOT:
 			expression(new Symbol());
 			break;
