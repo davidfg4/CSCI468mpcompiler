@@ -75,7 +75,8 @@ public class SemanticAnalyzer {
 	 */
 	public void genArithmetic(Symbol leftRec, Symbol opRec, Symbol rightRec, Symbol resultRec) {
 		String operation = null;
-		boolean booleanOp = false;
+		boolean booleanOp = false, 
+				relOp = false;		// if relational op, set resulting type to boolean
 		switch(opRec.lexeme.toLowerCase()) {
 			case "+":
 				operation = "adds";
@@ -94,21 +95,27 @@ public class SemanticAnalyzer {
 //				break;
 			case "=":
 				operation = "cmpeqs";
+				relOp = true;
 				break;
 			case ">=":
 				operation = "cmpges";
+				relOp = true;
 				break;
 			case ">":
 				operation = "cmpgts";
+				relOp = true;
 				break;
 			case "<=":
 				operation = "cmples";
+				relOp = true;
 				break;
 			case "<":
 				operation = "cmplts";
+				relOp = true;
 				break;
 			case "<>":
 				operation = "cmpnes";
+				relOp = true;
 				break;
 			case "and":
 				operation = "ands";
@@ -125,24 +132,24 @@ public class SemanticAnalyzer {
 		}
 		else if(!booleanOp){
 			if(leftRec.type == rightRec.type) {
-				resultRec.type = leftRec.type;
+				resultRec.type = relOp ? Symbol.Type.BOOLEAN: leftRec.type;
 				output.append(operation+"\n");
 			}
 			else if(leftRec.type == Symbol.Type.FLOAT && rightRec.type == Symbol.Type.INTEGER) {
 				// TODO  implement cast
-				resultRec.type = Symbol.Type.FLOAT;
+				resultRec.type = relOp ? Symbol.Type.BOOLEAN : Symbol.Type.FLOAT;
 				output.append(operation + "f\n");
 			}
 			else if(leftRec.type == Symbol.Type.INTEGER && rightRec.type == Symbol.Type.FLOAT) {
 				// TODO implement cast
-				resultRec.type = Symbol.Type.FLOAT;
+				resultRec.type = relOp ? Symbol.Type.BOOLEAN : Symbol.Type.FLOAT;
 				output.append(operation + "f\n");
 			}
 			else if(leftRec.type != rightRec.type) 
-				parser.semanticError("Incompatible types encountered for expression");
+				parser.semanticError("Incompatible types encountered for expression: " + leftRec.type + " " + opRec.lexeme + " " + rightRec.type);
 		}
 		else 
-			parser.semanticError("Incompatible types encountered for expression");
+			parser.semanticError("Incompatible types encountered for expression: " + leftRec.type + " " + opRec.lexeme + " " + rightRec.type);
 	}
 	
 	/**
@@ -181,5 +188,17 @@ public class SemanticAnalyzer {
 	public void genReadStmt(Symbol paramRec) {
 		Symbol var = symbolTable.findSymbol(paramRec.lexeme);
 		output.append("rd " + var.offset + "(D" + var.nestLevel + ")\n");
+	}
+	
+	/**
+	 * Generates test code/labels for if statement
+	 * @param ifRec
+	 */
+	public void genIfTest(Symbol ifRec) {
+		if(ifRec.type == Symbol.Type.BOOLEAN) {
+			// TODO output
+		}
+		else
+			parser.semanticError("Expected boolean expression result, got " + ifRec.type);
 	}
 }

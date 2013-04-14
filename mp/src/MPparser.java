@@ -822,11 +822,13 @@ public class MPparser {
 	 * Post: ifStatement is expanded
 	 */
 	private void ifStatement() {
+		Symbol exprRec = new Symbol();
 		switch (lookahead.getToken()) {
 		// rule 53: IfStatement --> "if" BooleanExpression "then" Statement OptionalElsePart
 		case MP_IF:
 			match(Token.TokenName.MP_IF);
-			booleanExpression();
+			booleanExpression(exprRec);
+			analyzer.genIfTest(exprRec);
 			match(Token.TokenName.MP_THEN);
 			statement();
 			optionalElsePart();
@@ -862,13 +864,14 @@ public class MPparser {
 	 * Post: RepeatStatement is expanded
 	 */
 	private void repeatStatement() {
+		Symbol exprRec = new Symbol();
 		switch (lookahead.getToken()) {
 		// rule 56: RepeatStatement --> "repeat" StatementSequence "until" BooleanExpression
 		case MP_REPEAT:
 			match(Token.TokenName.MP_REPEAT);
 			statementSequence();
 			match(Token.TokenName.MP_UNTIL);
-			booleanExpression();
+			booleanExpression(exprRec);
 			break;
 		default:
 			syntaxErrorExpected("'repeat'");
@@ -881,11 +884,12 @@ public class MPparser {
 	 * Post: WhileStatement is expanded
 	 */
 	private void whileStatement() {
+		Symbol exprRec = new Symbol();
 		switch (lookahead.getToken()) {
 		// rule 57: WhileStatement --> "while" BooleanExpression "do" Statement
 		case MP_WHILE:
 			match(Token.TokenName.MP_WHILE);
-			booleanExpression();
+			booleanExpression(exprRec);
 			match(Token.TokenName.MP_DO);
 			statement();
 			break;
@@ -1558,7 +1562,7 @@ public class MPparser {
 	 * Pre: BooleanExpression is leftmost nonterminal
 	 * Post: BooleanExpression is expanded
 	 */
-	private void booleanExpression() {
+	private void booleanExpression(Symbol exprRec) {
 		switch (lookahead.getToken()) {
 		// rule 104: BooleanExpression --> Expression
 		case MP_LPAREN:
@@ -1569,7 +1573,7 @@ public class MPparser {
 		case MP_FLOAT_LIT:	
 		case MP_FIXED_LIT:	
 		case MP_NOT:
-			expression(new Symbol());
+			expression(exprRec);
 			break;
 		default:
 			syntaxErrorExpected("a boolean expression");
