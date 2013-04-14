@@ -115,8 +115,11 @@ public class SemanticAnalyzer {
 	 */
 	public void genPushId(Symbol idRec) {
 		Symbol var = symbolTable.findSymbol(idRec.lexeme);
-		// TODO check that variable is proper type to push
 		output.append("push " + var.offset + "(D" + var.nestLevel + ")\n");
+		if(idRec.negative) {
+			String negOp = idRec.type == Symbol.Type.FLOAT ? "negsf\n" : "negs\n";
+			output.append(negOp);	// negate top of stack
+		}
 	}
 	
 	/**

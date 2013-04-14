@@ -1211,7 +1211,7 @@ public class MPparser {
 		case MP_FLOAT_LIT:
 		case MP_FIXED_LIT:
 		case MP_NOT:
-			optionalSign();	// TODO signRec
+			optionalSign(termRec);
 			term(termRec);
 			analyzer.copy(termRec, termTailRec); 	// pass LHS (termRec) type down
 			termTail(termTailRec);
@@ -1270,7 +1270,7 @@ public class MPparser {
 	 * Pre: OptionalSign is leftmost nonterminal
 	 * Post: OptionalSign is expanded
 	 */
-	private void optionalSign() {
+	private void optionalSign(Symbol signRec) {
 		switch (lookahead.getToken()) {
 		// rule 82: OptionalSign --> "+"
 		case MP_PLUS:
@@ -1279,7 +1279,7 @@ public class MPparser {
 		// rule 83: OptionalSign --> "-"
 		case MP_MINUS:
 			match(Token.TokenName.MP_MINUS);
-			// TODO signRec.negative = true;
+			signRec.negative = true;
 			break;
 		// rule 84: OptionalSign --> epsilon
 		case MP_LPAREN:
@@ -1558,9 +1558,9 @@ public class MPparser {
 		case MP_PLUS:
 		case MP_MINUS:
 		case MP_IDENTIFIER:
-		case MP_INTEGER_LIT:	// These seem odd
-		case MP_FLOAT_LIT:		// ?
-		case MP_FIXED_LIT:		// ?
+		case MP_INTEGER_LIT:
+		case MP_FLOAT_LIT:	
+		case MP_FIXED_LIT:	
 		case MP_NOT:
 			expression(new Symbol());
 			break;

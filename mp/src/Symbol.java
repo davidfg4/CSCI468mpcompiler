@@ -18,6 +18,7 @@ public class Symbol {
 	public ParameterMode mode;
 	public List<Symbol> parameters;
 	public int size, offset, nestLevel;	// for semantics
+	public boolean negative = false;	
 	public String label;
 	
 	public Symbol() {/*for semantic records */}

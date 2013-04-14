@@ -14,7 +14,8 @@ var
       read(x,y,z,bar,baz,nested1,nested2);
       nested2 := nested1+(x+2)*y;
       nested1 := nested2;
-      write(nested2, nested1, x, y, z);
+      if(bar+x>y+3) then
+        write(-nested2+1, nested1-2, x div y, 5*(y*3+z-x), -z);
     end;
 begin
   bar := x*y+z;
