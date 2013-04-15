@@ -26,6 +26,12 @@ begin
   writeln(bar, baz, x);
 end;
 begin
-  if((3 > 4) or bool1 and false) then 
-    bool2 := false;
+  if((x>4) or bool1 and bool2) then 
+  else
+  begin
+    bool2 := true;
+    x := 3;
+    if(bool1) then
+      x := z;
+  end
 end.

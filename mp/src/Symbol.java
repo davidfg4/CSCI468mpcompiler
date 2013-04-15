@@ -19,7 +19,7 @@ public class Symbol {
 	public List<Symbol> parameters;
 	public int size, offset, nestLevel;	// for semantics
 	public boolean negative = false;	
-	public String label;
+	public String label1, label2;
 	
 	public Symbol() {/*for semantic records */}
 	

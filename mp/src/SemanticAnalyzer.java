@@ -204,11 +204,40 @@ public class SemanticAnalyzer {
 	 * Generates test code/labels for if statement
 	 * @param ifRec
 	 */
-	public void genIfTest(Symbol ifRec) {
-		if(ifRec.type == Symbol.Type.BOOLEAN) {
-			// TODO output
-		}
+	public void genIfTest(Symbol ifRec, Symbol exprRec) {
+		ifRec.label1 = this.generateLabel();
+		ifRec.label2 = this.generateLabel();
+		// branch past "then" statements if value on stack is false
+		if(exprRec.type == Symbol.Type.BOOLEAN)
+			output.append("brfs " + ifRec.label1 + "\n");	
 		else
 			parser.semanticError("Expected boolean expression result, got " + ifRec.type);
+	}
+	
+	/**
+	 * Generates code to branch past "else" statements if "then" part executed and
+	 * drops first label generated for if statement
+	 * @param ifRec
+	 */
+	public void processElse(Symbol ifRec) {
+		// branch past "else" statements if "then" statements are evaluated
+		output.append("br " + ifRec.label2 + "\n");
+		output.append(ifRec.label1 + ":\n");
+	}
+	
+	/**
+	 * Drops label1 when no else clause present
+	 * @param ifRec
+	 */
+	public void processNoElse(Symbol ifRec) {
+		output.append(ifRec.label1 + ":\n");
+	}
+	
+	/**
+	 * Drops label2 for end of if statement
+	 * @param ifRec
+	 */
+	public void genFinishIf(Symbol ifRec) {
+		output.append(ifRec.label2 + ":\n");
 	}
 }

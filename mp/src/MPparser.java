@@ -823,15 +823,17 @@ public class MPparser {
 	 */
 	private void ifStatement() {
 		Symbol exprRec = new Symbol();
+		Symbol ifRec = new Symbol();
 		switch (lookahead.getToken()) {
 		// rule 53: IfStatement --> "if" BooleanExpression "then" Statement OptionalElsePart
 		case MP_IF:
 			match(Token.TokenName.MP_IF);
 			booleanExpression(exprRec);
-			analyzer.genIfTest(exprRec);
+			analyzer.genIfTest(ifRec, exprRec);
 			match(Token.TokenName.MP_THEN);
 			statement();
-			optionalElsePart();
+			optionalElsePart(ifRec);
+			analyzer.genFinishIf(ifRec);
 			break;
 		default:
 			syntaxErrorExpected("'if'");
@@ -839,19 +841,21 @@ public class MPparser {
 		}
 	}
 
-	private void optionalElsePart() {
+	private void optionalElsePart(Symbol optElseRec) {
 		switch (lookahead.getToken()) {
 		// It is possible for "case MP_ELSE" to be epsilon, but for simplicity,
 		// and to always match the closest if statement, 'else' always matches here.
 		// rule 54: OptionalElsePart --> "else" Statement
 		case MP_ELSE:
 			match(Token.TokenName.MP_ELSE);
+			analyzer.processElse(optElseRec);
 			statement();
 			break;
 		// rule 55: OptionalElsePart --> epsilon
 		case MP_SCOLON:
 		case MP_END:
 		case MP_UNTIL:
+			analyzer.processNoElse(optElseRec);
 			break;
 		default:
 			syntaxErrorExpected("'else' or end of statement");
