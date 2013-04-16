@@ -895,13 +895,17 @@ public class MPparser {
 	 */
 	private void whileStatement() {
 		Symbol exprRec = new Symbol();
+		Symbol whileRec = new Symbol();
 		switch (lookahead.getToken()) {
 		// rule 57: WhileStatement --> "while" BooleanExpression "do" Statement
 		case MP_WHILE:
 			match(Token.TokenName.MP_WHILE);
+			analyzer.genBeginWhile(whileRec);
 			booleanExpression(exprRec);
+			analyzer.genWhileTest(whileRec, exprRec);
 			match(Token.TokenName.MP_DO);
 			statement();
+			analyzer.genEndWhile(whileRec);
 			break;
 		default:
 			syntaxErrorExpected("'while'");

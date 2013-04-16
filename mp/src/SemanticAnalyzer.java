@@ -260,4 +260,36 @@ public class SemanticAnalyzer {
 	public void genFinishIf(Symbol ifRec) {
 		output.append(ifRec.label2 + ":\n");
 	}
+	
+	/**
+	 * Generates while labels and drops label to begin while statement
+	 * @param whileRec
+	 */
+	public void genBeginWhile(Symbol whileRec) {
+		whileRec.label1 = this.generateLabel();
+		whileRec.label2 = this.generateLabel();
+		output.append(whileRec.label1 + ":\n");
+	}
+	
+	/**
+	 * Generates test code for while loop
+	 * @param whileRec
+	 * @param exprRec
+	 */
+	public void genWhileTest(Symbol whileRec, Symbol exprRec) {
+		if(exprRec.type == Symbol.Type.BOOLEAN)
+			output.append("brfs " + whileRec.label2 + "\n");
+		else
+			parser.semanticError("Expected boolean expression result, got " + whileRec.type);
+	}
+	
+	/**
+	 * Generates unconditional branch to beginning of while,
+	 * drops label for end while
+	 * @param whileRec
+	 */
+	public void genEndWhile(Symbol whileRec) {
+		output.append("br " + whileRec.label1 + "\n");
+		output.append(whileRec.label2 + ":\n");
+	}
 }
