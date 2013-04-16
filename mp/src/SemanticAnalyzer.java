@@ -130,7 +130,8 @@ public class SemanticAnalyzer {
 			output.append(operation+"\n");
 			resultRec.type = leftRec.type;
 		}
-		else if(!booleanOp){
+		// disallow arithmetic/compare operations on boolean and string types
+		else if(leftRec.type!= Symbol.Type.BOOLEAN && leftRec.type != Symbol.Type.STRING) {
 			if(leftRec.type == rightRec.type) {
 				resultRec.type = relOp ? Symbol.Type.BOOLEAN : leftRec.type;
 				output.append(operation+"\n");
