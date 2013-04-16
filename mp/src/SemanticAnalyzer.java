@@ -132,17 +132,21 @@ public class SemanticAnalyzer {
 		}
 		else if(!booleanOp){
 			if(leftRec.type == rightRec.type) {
-				resultRec.type = relOp ? Symbol.Type.BOOLEAN: leftRec.type;
+				resultRec.type = relOp ? Symbol.Type.BOOLEAN : leftRec.type;
 				output.append(operation+"\n");
 			}
+			// Stack top needs to be casted to float:
 			else if(leftRec.type == Symbol.Type.FLOAT && rightRec.type == Symbol.Type.INTEGER) {
-				// TODO  implement cast
 				resultRec.type = relOp ? Symbol.Type.BOOLEAN : Symbol.Type.FLOAT;
+				output.append("castsf\n"); 
 				output.append(operation + "f\n");
 			}
+			// Second in from top of stack needs to be casted to float:
 			else if(leftRec.type == Symbol.Type.INTEGER && rightRec.type == Symbol.Type.FLOAT) {
-				// TODO implement cast
 				resultRec.type = relOp ? Symbol.Type.BOOLEAN : Symbol.Type.FLOAT;
+				output.append("push -2(SP)\n");		// Push value below value on top of stack (the int)
+				output.append("castf\n");			// and cast this value to float
+				output.append("pop -3(SP)\n");		// then put it back where it was
 				output.append(operation + "f\n");
 			}
 			else if(leftRec.type != rightRec.type) 
