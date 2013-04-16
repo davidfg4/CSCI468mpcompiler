@@ -8,5 +8,9 @@ begin
     read(x);
     x := x + 2;
     write(x);
-  end
+  end;
+  repeat 
+    x := x+y;
+    y := 2*x div 2;
+  until((x>100) or (y>100));
 end.

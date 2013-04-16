@@ -875,13 +875,16 @@ public class MPparser {
 	 */
 	private void repeatStatement() {
 		Symbol exprRec = new Symbol();
+		Symbol repeatRec = new Symbol();
 		switch (lookahead.getToken()) {
 		// rule 56: RepeatStatement --> "repeat" StatementSequence "until" BooleanExpression
 		case MP_REPEAT:
 			match(Token.TokenName.MP_REPEAT);
+			analyzer.genBeginRepeat(repeatRec);
 			statementSequence();
 			match(Token.TokenName.MP_UNTIL);
 			booleanExpression(exprRec);
+			analyzer.genEndRepeat(repeatRec, exprRec);
 			break;
 		default:
 			syntaxErrorExpected("'repeat'");

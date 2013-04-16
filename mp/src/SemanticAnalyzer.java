@@ -232,7 +232,7 @@ public class SemanticAnalyzer {
 		if(exprRec.type == Symbol.Type.BOOLEAN)
 			output.append("brfs " + ifRec.label1 + "\n");	
 		else
-			parser.semanticError("Expected boolean expression result, got " + ifRec.type);
+			parser.semanticError("Expected boolean expression result, got " + exprRec.type);
 	}
 	
 	/**
@@ -279,9 +279,9 @@ public class SemanticAnalyzer {
 	 */
 	public void genWhileTest(Symbol whileRec, Symbol exprRec) {
 		if(exprRec.type == Symbol.Type.BOOLEAN)
-			output.append("brfs " + whileRec.label2 + "\n");
+			output.append("brfs " + whileRec.label2 + "\n");	// skip while block if condition is false
 		else
-			parser.semanticError("Expected boolean expression result, got " + whileRec.type);
+			parser.semanticError("Expected boolean expression result, got " + exprRec.type);
 	}
 	
 	/**
@@ -292,5 +292,26 @@ public class SemanticAnalyzer {
 	public void genEndWhile(Symbol whileRec) {
 		output.append("br " + whileRec.label1 + "\n");
 		output.append(whileRec.label2 + ":\n");
+	}
+	
+	/**
+	 * Drops begin label for repeat block
+	 * @param repeatRec
+	 */
+	public void genBeginRepeat(Symbol repeatRec) {
+		repeatRec.label1 = this.generateLabel();
+		output.append(repeatRec.label1 + ":\n");
+	}
+	
+	/**
+	 * Generates branch on false to beginning of repeat block
+	 * @param repeatRec
+	 * @param exprRec
+	 */
+	public void genEndRepeat(Symbol repeatRec, Symbol exprRec) {
+		if(exprRec.type == Symbol.Type.BOOLEAN)
+			output.append("brfs " + repeatRec.label1);	// repeat until condition is true
+		else
+			parser.semanticError("Expected boolean expression result, got " + exprRec.type);
 	}
 }
