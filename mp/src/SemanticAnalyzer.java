@@ -174,7 +174,8 @@ public class SemanticAnalyzer {
 	 * @param literalRec
 	 */
 	public void genPushLiteral(Symbol literalRec) {
-		output.append("push #" + literalRec.lexeme + "\n");	// Push primitive literal
+		String literal = literalRec.type == Symbol.Type.STRING ? "\"" + literalRec.lexeme + "\"" : literalRec.lexeme;
+		output.append("push #" + literal + "\n");	// Push primitive literal
 	}
 	
 	/**

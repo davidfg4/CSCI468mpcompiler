@@ -1481,7 +1481,7 @@ public class MPparser {
 		case MP_STRING_LIT:
 			factorRec.type = Symbol.Type.STRING;
 			factorRec.lexeme = lookahead.getLexeme();
-			// TODO analyzer.genPushStringLit(factorRec);
+			analyzer.genPushLiteral(factorRec);
 			match(Token.TokenName.MP_STRING_LIT);
 			break;
 		// rule 115: Factor --> "True"
