@@ -165,7 +165,8 @@ public class SemanticAnalyzer {
 		Symbol var = symbolTable.findSymbol(idRec.lexeme);
 		output.append("push " + var.offset + "(D" + var.nestLevel + ")\n");
 		if(idRec.negative) {
-			String negOp = idRec.type == Symbol.Type.FLOAT ? "negsf\n" : "negs\n";
+			// choose appropriate negation operator (boolean, float, int) --> ("nots", "negsf", "negs")
+			String negOp = idRec.type == Symbol.Type.BOOLEAN ? "nots\n" : idRec.type == Symbol.Type.FLOAT ? "negsf\n" : "negs\n";
 			output.append(negOp);	// negate top of stack
 		}
 	}
