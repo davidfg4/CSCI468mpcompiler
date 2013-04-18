@@ -146,8 +146,8 @@ public class SemanticAnalyzer {
 			else if(leftRec.type == Symbol.Type.INTEGER && rightRec.type == Symbol.Type.FLOAT) {
 				resultRec.type = relOp ? Symbol.Type.BOOLEAN : Symbol.Type.FLOAT;
 				output.append("push -2(SP)\n");		// Push value below value on top of stack (the int)
-				output.append("castf\n");			// and cast this value to float
-				output.append("pop -3(SP)\n");		// then put it back where it was
+				output.append("castsf\n");			// and cast this value to float
+				output.append("pop -2(SP)\n");		// then put it back where it was
 				output.append(operation + "f\n");
 			}
 			else if(leftRec.type != rightRec.type) 
@@ -161,22 +161,27 @@ public class SemanticAnalyzer {
 	 * Generates code to push variable onto stack
 	 * @param idRec
 	 */
-	public void genPushId(Symbol idRec) {
+	public void genPushId(Symbol idRec, Symbol signRec) {
 		Symbol var = symbolTable.findSymbol(idRec.lexeme);
 		output.append("push " + var.offset + "(D" + var.nestLevel + ")\n");
-		if(idRec.negative) {
-			// choose appropriate negation operator (boolean, float, int) --> ("nots", "negsf", "negs")
-			String negOp = idRec.type == Symbol.Type.BOOLEAN ? "nots\n" : idRec.type == Symbol.Type.FLOAT ? "negsf\n" : "negs\n";
-			output.append(negOp);	// negate top of stack
-		}
+		if(signRec.negative)
+			this.genNegOp(idRec);
+	}
+	
+	public void genNegOp(Symbol factorRec) {
+		// choose appropriate negation operator (boolean, float, int) --> ("nots", "negsf", "negs")
+		String negOp = factorRec.type == Symbol.Type.BOOLEAN ? "nots\n" : factorRec.type == Symbol.Type.FLOAT ? "negsf\n" : "negs\n";
+		output.append(negOp);	// negate top of stack
 	}
 	
 	/**
 	 * Generates code to push primitive literal onto stack
 	 * @param literalRec
 	 */
-	public void genPushLiteral(Symbol literalRec) {
+	public void genPushLiteral(Symbol literalRec, Symbol signRec) {
 		String literal = literalRec.type == Symbol.Type.STRING ? "\"" + literalRec.lexeme + "\"" : literalRec.lexeme;
+		if(signRec.negative)
+			literal = "-" + literal;
 		output.append("push #" + literal + "\n");	// Push primitive literal
 	}
 	
