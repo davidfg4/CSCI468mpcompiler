@@ -198,9 +198,15 @@ public class SemanticAnalyzer {
 	/**
 	 * Generates code to write (and pop) current value of stack
 	 */
-	public void genWriteStmt(boolean writeLn) {
-		String statement = writeLn ? "wrtlns\n" : "wrts\n";
-		output.append(statement);
+	public void genWriteStmt() {
+		output.append("wrts\n");
+	}
+	
+	/**
+	 * Generates code to write newline
+	 */
+	public void genWriteLnStmt() {
+		output.append("wrtln #\"\"\n");
 	}
 	
 	/**
