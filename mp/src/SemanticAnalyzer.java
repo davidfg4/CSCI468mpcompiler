@@ -168,10 +168,29 @@ public class SemanticAnalyzer {
 			this.genNegOp(idRec);
 	}
 	
+	/**
+	 * Generates code for numeric negation
+	 * @param factorRec
+	 */
 	public void genNegOp(Symbol factorRec) {
-		// choose appropriate negation operator (boolean, float, int) --> ("nots", "negsf", "negs")
-		String negOp = factorRec.type == Symbol.Type.BOOLEAN ? "nots\n" : factorRec.type == Symbol.Type.FLOAT ? "negsf\n" : "negs\n";
-		output.append(negOp);	// negate top of stack
+		if(factorRec.type == Symbol.Type.FLOAT || factorRec.type == Symbol.Type.INTEGER) {
+			// choose appropriate negation operator (float, int) --> ("negsf", "negs")
+			String negOp = factorRec.type == Symbol.Type.FLOAT ? "negsf\n" : "negs\n";
+			output.append(negOp);	// negate top of stack
+		}
+		else
+			parser.semanticError("'-' used for non-numeric expression type");
+	}
+	
+	/**
+	 * Generates code for boolean negation
+	 * @param factorRec
+	 */
+	public void genNotOp(Symbol factorRec) {
+		if(factorRec.type == Symbol.Type.BOOLEAN)
+			output.append("nots\n");
+		else
+			parser.semanticError("'not' used for non-boolean expression type");
 	}
 	
 	/**

@@ -808,14 +808,14 @@ public class MPparser {
 				// rule 51: AssignmentStatement --> VariableIdentifier ":=" Expression
 				variableIdentifier(idRecord);
 				match(Token.TokenName.MP_ASSIGN);
-				expression(exprRecord, new Symbol());
+				expression(exprRecord);
 				analyzer.genAssignStmt(idRecord, exprRecord);
 			} else if (assignedVar.kind == Symbol.Kind.FUNCTION) {
 				// rule 52: AssignmentStatement --> FunctionIdentifier ":=" Expression
 				// personal note: how do you assign something to a function? what is going on here?
 				functionIdentifier(idRecord);
 				match(Token.TokenName.MP_ASSIGN);
-				expression(exprRecord, new Symbol());
+				expression(exprRecord);
 				analyzer.genAssignStmt(idRecord, exprRecord);	// ?? 
 			}
 			break;
@@ -923,11 +923,12 @@ public class MPparser {
 	 * Post: ForStatement is expanded
 	 */
 	private void forStatement() {
+		Symbol idRec = new Symbol();
 		switch (lookahead.getToken()) {
 		// rule 58: ForStatement --> "for" ControlVariable ":=" InitialValue StepValue FinalValue "do" Statement
 		case MP_FOR:
 			match(Token.TokenName.MP_FOR);
-			controlVariable();
+			controlVariable(idRec);
 			match(Token.TokenName.MP_ASSIGN);
 			initialValue();
 			stepValue();
@@ -945,11 +946,11 @@ public class MPparser {
 	 * Pre: ControlVariable is leftmost nonterminal
 	 * Post: ControlVariable is expanded
 	 */
-	private void controlVariable() {
+	private void controlVariable(Symbol idRec) {
 		switch (lookahead.getToken()) {
 		// rule 59: ControlVariable --> VariableIdentifier
 		case MP_IDENTIFIER:
-			variableIdentifier(new Symbol());
+			variableIdentifier(idRec);
 			break;
 		default:
 			syntaxErrorExpected("'identifier'(4)");
@@ -1130,7 +1131,7 @@ public class MPparser {
 	 * Pre: Expression is leftmost nonterminal
 	 * Post: Expression is expanded
 	 */
-	private void expression(Symbol exprRec, Symbol signRec) {
+	private void expression(Symbol exprRec) {
 		switch (lookahead.getToken()) {
 		// rule 70: Expression --> SimpleExpression OptionalRelationalPart
 		case MP_LPAREN:
@@ -1144,7 +1145,7 @@ public class MPparser {
 		case MP_FALSE:
 		case MP_STRING_LIT:
 		case MP_NOT:
-			simpleExpression(exprRec, signRec);
+			simpleExpression(exprRec);
 			optionalRelationalPart(exprRec);
 			break;
 		default:
@@ -1170,7 +1171,7 @@ public class MPparser {
 		case MP_GEQUAL:
 		case MP_NEQUAL:
 			relationalOperator(relOp);
-			simpleExpression(rightSideRec, new Symbol());
+			simpleExpression(rightSideRec);
 			analyzer.genArithmetic(leftSideRec, relOp, rightSideRec, resultRec);
 			analyzer.copy(resultRec, leftSideRec);
 			break;
@@ -1233,9 +1234,10 @@ public class MPparser {
 	 * Pre: SimpleExpression is leftmost nonterminal
 	 * Post: SimpleExpression is expanded
 	 */
-	private void simpleExpression(Symbol exprRec, Symbol signRec) {
+	private void simpleExpression(Symbol exprRec) {
 		Symbol termRec = new Symbol();
 		Symbol termTailRec = new Symbol();
+		Symbol signRec = new Symbol();
 		switch (lookahead.getToken()) {
 		// rule 79: SimpleExpression --> OptionalSign Term TermTail
 		case MP_LPAREN:
@@ -1509,15 +1511,14 @@ public class MPparser {
 			break;
 		// Factor --> "not" Factor
 		case MP_NOT:
-			factorRec.negative = true;
 			match(Token.TokenName.MP_NOT);
 			factor(factorRec, new Symbol());
-			analyzer.genNegOp(factorRec);
+			analyzer.genNotOp(factorRec);
 			break;
 		// Factor --> "(" Expression ")"
 		case MP_LPAREN:
 			match(Token.TokenName.MP_LPAREN);
-			expression(factorRec, new Symbol());
+			expression(factorRec);
 			match(Token.TokenName.MP_RPAREN);
 			if(signRec.negative)
 				analyzer.genNegOp(factorRec);
@@ -1630,7 +1631,7 @@ public class MPparser {
 		case MP_TRUE:
 		case MP_FALSE:
 		case MP_NOT:
-			expression(exprRec, new Symbol());
+			expression(exprRec);
 			break;
 		default:
 			syntaxErrorExpected("a boolean expression");
@@ -1656,7 +1657,7 @@ public class MPparser {
 		case MP_FALSE:
 		case MP_STRING_LIT:
 		case MP_NOT:
-			expression(new Symbol(), new Symbol());
+			expression(new Symbol());
 			break;
 		default:
 			syntaxErrorExpected("a ordianl expression");
