@@ -971,6 +971,8 @@ public class MPparser {
 		case MP_MINUS:
 		case MP_IDENTIFIER:
 		case MP_INTEGER_LIT:
+		case MP_FLOAT_LIT:
+		case MP_FIXED_LIT:
 		case MP_NOT:
 			ordinalExpression();
 			break;
@@ -989,6 +991,7 @@ public class MPparser {
 		// rule 61: StepValue --> "to"
 		case MP_TO:
 			match(Token.TokenName.MP_TO);
+			break;
 		// rule 62: StepValue --> "downto"
 		case MP_DOWNTO:
 			match(Token.TokenName.MP_DOWNTO);
@@ -1011,6 +1014,8 @@ public class MPparser {
 		case MP_MINUS:
 		case MP_IDENTIFIER:
 		case MP_INTEGER_LIT:
+		case MP_FLOAT_LIT:
+		case MP_FIXED_LIT:
 		case MP_NOT:
 			ordinalExpression();
 			break;
