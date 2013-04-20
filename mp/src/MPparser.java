@@ -544,6 +544,7 @@ public class MPparser {
 		case MP_FLOAT_LIT:
 		case MP_IDENTIFIER:
 		case MP_IF:
+		case MP_FOR:
 		case MP_READ:
 		case MP_REPEAT:
 		case MP_UNTIL:
