@@ -782,7 +782,7 @@ public class MPparser {
 		case MP_FIXED_LIT:
 		case MP_STRING_LIT:
 		case MP_NOT:
-			ordinalExpression();
+			ordinalExpression(new Symbol());
 			analyzer.genWriteStmt();	// value of param expression should be on stack top
 			break;
 		default:
@@ -925,17 +925,23 @@ public class MPparser {
 	 */
 	private void forStatement() {
 		Symbol idRec = new Symbol();
+		Symbol initialRec = new Symbol();
+		Symbol forRec = new Symbol();		// could use boolean, but this is more clear
+		Symbol finalRec = new Symbol();
 		switch (lookahead.getToken()) {
 		// rule 58: ForStatement --> "for" ControlVariable ":=" InitialValue StepValue FinalValue "do" Statement
 		case MP_FOR:
 			match(Token.TokenName.MP_FOR);
-			controlVariable(idRec);
+			controlVariable(idRec);	
 			match(Token.TokenName.MP_ASSIGN);
-			initialValue();
-			stepValue();
-			finalValue();
+			initialValue(initialRec);
+			stepValue(forRec);
+			analyzer.genBeginFor(idRec, initialRec, forRec);			
+			finalValue(finalRec);
+			analyzer.genForTest(idRec, forRec, finalRec);
 			match(Token.TokenName.MP_DO);
 			statement();
+			analyzer.genEndFor(idRec, forRec);
 			break;
 		default:
 			syntaxErrorExpected("'for'");
@@ -963,7 +969,7 @@ public class MPparser {
 	 * Pre: InitialValue is leftmost nonterminal
 	 * Post: InitialValue is expanded
 	 */
-	private void initialValue() {
+	private void initialValue(Symbol exprRec) {
 		switch (lookahead.getToken()) {
 		// rule 60: InitialValue --> OrdinalExpression
 		case MP_LPAREN:
@@ -971,10 +977,12 @@ public class MPparser {
 		case MP_MINUS:
 		case MP_IDENTIFIER:
 		case MP_INTEGER_LIT:
-		case MP_FLOAT_LIT:
-		case MP_FIXED_LIT:
+		case MP_FLOAT_LIT:	// According to the grammar, OrdinalExpression --> Expression
+		case MP_FIXED_LIT:	// so floats are allowed, contrary to intuitive "ordinal" expressions
+//		case MP_TRUE:		// true and false would be grammatically acceptable as well..
+//		case MP_FALSE:
 		case MP_NOT:
-			ordinalExpression();
+			ordinalExpression(exprRec);
 			break;
 		default: 
 			syntaxErrorExpected("an expression");
@@ -986,7 +994,8 @@ public class MPparser {
 	 * Pre: StepValue is leftmost nonterminal
 	 * Post: StepValue is expanded
 	 */
-	private void stepValue() {
+	private void stepValue(Symbol stepRec) {
+		stepRec.lexeme = lookahead.getLexeme();
 		switch (lookahead.getToken()) {
 		// rule 61: StepValue --> "to"
 		case MP_TO:
@@ -1006,7 +1015,7 @@ public class MPparser {
 	 * Pre: FinalValue is leftmost nonterminal
 	 * Post: FinalValue is expanded
 	 */
-	private void finalValue() {
+	private void finalValue(Symbol exprRec) {
 		switch (lookahead.getToken()) {
 		// rule 63: FinalValue --> OrdinalExpression
 		case MP_LPAREN:
@@ -1016,8 +1025,10 @@ public class MPparser {
 		case MP_INTEGER_LIT:
 		case MP_FLOAT_LIT:
 		case MP_FIXED_LIT:
+//		case MP_TRUE:
+//		case MP_FALSE:
 		case MP_NOT:
-			ordinalExpression();
+			ordinalExpression(exprRec);
 			break;
 		default:
 			syntaxErrorExpected("an expression");
@@ -1125,7 +1136,7 @@ public class MPparser {
 		case MP_FALSE:
 		case MP_STRING_LIT:
 		case MP_NOT:
-			ordinalExpression();
+			ordinalExpression(new Symbol());
 			break;
 		default:
 			syntaxErrorExpected("an expression");
@@ -1649,7 +1660,7 @@ public class MPparser {
 	 * Pre: OrdinalExpression is leftmost nonterminal
 	 * Post: OrdinalExpression is expanded
 	 */
-	private void ordinalExpression() {
+	private void ordinalExpression(Symbol exprRec) {
 		switch (lookahead.getToken()) {
 		// rule 105: OrdinalExpression --> Expression
 		case MP_LPAREN:
@@ -1663,7 +1674,7 @@ public class MPparser {
 		case MP_FALSE:
 		case MP_STRING_LIT:
 		case MP_NOT:
-			expression(new Symbol());
+			expression(exprRec);
 			break;
 		default:
 			syntaxErrorExpected("a ordianl expression");

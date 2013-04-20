@@ -341,8 +341,55 @@ public class SemanticAnalyzer {
 	 */
 	public void genEndRepeat(Symbol repeatRec, Symbol exprRec) {
 		if(exprRec.type == Symbol.Type.BOOLEAN)
-			output.append("brfs " + repeatRec.label1);	// repeat until condition is true
+			output.append("brfs " + repeatRec.label1 + "\n");	// repeat until condition is true
 		else
 			parser.semanticError("Expected boolean expression result, got " + exprRec.type);
+	}
+	
+	/**
+	 * Generates labels for the loop, and IR to initialize control variable and to drop begin label
+	 * @param ctrlVarRec
+	 * @param initialRec
+	 * @param forRec
+	 */
+	public void genBeginFor(Symbol ctrlVarRec, Symbol initialRec, Symbol forRec) {
+		forRec.label1 = this.generateLabel();
+		forRec.label2 = this.generateLabel();
+		this.genAssignStmt(ctrlVarRec, initialRec);
+		output.append(forRec.label1 + ":\n");
+	}
+	
+	/**
+	 * Generates IR to push control variable to the stack, to compare control variable and final
+	 * expression value (left on top of stack by expression), and to branch on false to end label
+	 * @param ctrlVarRec
+	 * @param forRec
+	 * @param finalRec
+	 */
+	public void genForTest(Symbol ctrlVarRec, Symbol forRec, Symbol finalRec) {
+		// TODO semantic/type checks; casting?
+		Symbol ctrlVar = symbolTable.findSymbol(ctrlVarRec.lexeme);
+		String cmpOp = forRec.lexeme.equalsIgnoreCase("to") ? "cmpges\n" : "cmples\n";
+		output.append("push " + ctrlVar.offset + "(D" + ctrlVar.nestLevel + ")\n");
+		output.append(cmpOp);
+		output.append("brfs " + forRec.label2 + "\n");
+
+	}
+	
+	/**
+	 * Generates IR to increment/decrement control variable, and to branch to top of for loop
+	 * @param ctrlVarRec
+	 * @param forRec
+	 */
+	public void genEndFor(Symbol ctrlVarRec, Symbol forRec) {
+		// TODO semantic/type checks; casting?
+		Symbol ctrlVar = symbolTable.findSymbol(ctrlVarRec.lexeme);
+		output.append("push " + ctrlVar.offset + "(D" + ctrlVar.nestLevel + ")\n");
+		output.append("push #1\n");
+		String stepOp = forRec.lexeme.equalsIgnoreCase("to") ? "adds\n" : "subs\n";
+		output.append(stepOp);
+		output.append("pop " + ctrlVar.offset + "(D" + ctrlVar.nestLevel + ")\n");
+		output.append("br " + forRec.label1 + "\n");
+		output.append(forRec.label2 + ":\n");
 	}
 }
