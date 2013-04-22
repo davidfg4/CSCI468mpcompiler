@@ -469,6 +469,18 @@ public class SemanticAnalyzer {
 	}
 	
 	/**
+	 * Stores return value into space reserved for it in the stack
+	 * @param funcRec
+	 */
+	public void genStoreReturnValue(Symbol funcRec) {
+		Symbol funcSymbol = symbolTable.findSymbol(funcRec.lexeme);
+		// return value stack address = AR size + display register + return address
+		int returnValAddr = -(funcSymbol.getActivationRecordSize() + Symbol.Type.INTEGER.size * 2);
+		// move stack top (expression result) to spot reserved
+		output.append("mov -1(SP) " + returnValAddr + "(SP)\n");
+	}
+	
+	/**
 	 * Generates IR to restore display register's old value, pop local variables, and call ret
 	 * which pops top of stack (return addr) into the PC.
 	 * Also used for main, in which case no 'ret' is generated and ar pop is 1 larger because
@@ -476,13 +488,15 @@ public class SemanticAnalyzer {
 	 * @param funcProcRec
 	 */
 	public void genEndFuncOrProcDeclaration(Symbol funcProcRec) {
-		// TODO put return value at appropriate place on stack
 		int activationRecordSize = funcProcRec.getActivationRecordSize();
+//		int returnValueAddr = -(activationRecordSize + Symbol.Type.INTEGER.size);
 		output.append("mov -" + activationRecordSize + "(SP) D" + funcProcRec.nestLevel + "\n");
 		if(funcProcRec.kind == Symbol.Kind.FUNCTION || funcProcRec.kind == Symbol.Kind.PROCEDURE) {
 			// func/proc teardown
+			if(funcProcRec.kind == Symbol.Kind.FUNCTION)
+				output.append("sub SP #" + Symbol.Type.INTEGER.size + " SP\n");
 			output.append("sub SP #" + funcProcRec.variableOffset + " SP\n");
-			output.append("ret\n");
+			output.append("ret ; -- end " + funcProcRec.lexeme + "\n");
 		}
 		else { // main teardown
 			int popSize = funcProcRec.variableOffset + Symbol.Type.INTEGER.size;
