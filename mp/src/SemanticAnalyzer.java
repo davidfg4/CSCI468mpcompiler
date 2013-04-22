@@ -161,12 +161,16 @@ public class SemanticAnalyzer {
 	 * Generates code to push variable onto stack
 	 * @param idRec
 	 */
-	public void genPushId(Symbol idRec, Symbol signRec) {
+	public void genPushId(Symbol idRec, Symbol signRec, Symbol.ParameterMode mode) {
 		Symbol var = symbolTable.findSymbol(idRec.lexeme);
-		// TODO if(mode == Symbol.ParameterMode.REFERENCE) calculate addr of ID, push on stack
-		output.append("push " + var.offset + "(D" + var.nestLevel + ")\n");
-		if(signRec.negative)
-			this.genNegOp(idRec);
+		if(mode == Symbol.ParameterMode.REFERENCE) {
+			output.append("REFERENCE PARAMETER ADDR CALCULATION"); // TODO calculate adress of reference parameter
+		}
+		else {
+			output.append("push " + var.offset + "(D" + var.nestLevel + ")\n");
+			if(signRec.negative)
+				this.genNegOp(idRec);
+		}
 	}
 	
 	/**
@@ -198,11 +202,15 @@ public class SemanticAnalyzer {
 	 * Generates code to push primitive literal onto stack
 	 * @param literalRec
 	 */
-	public void genPushLiteral(Symbol literalRec, Symbol signRec) {
-		String literal = literalRec.type == Symbol.Type.STRING ? "\"" + literalRec.lexeme + "\"" : literalRec.lexeme;
-		if(signRec.negative)
-			literal = "-" + literal;
-		output.append("push #" + literal + "\n");	// Push primitive literal
+	public void genPushLiteral(Symbol literalRec, Symbol signRec, Symbol.ParameterMode mode) {
+		if(mode != Symbol.ParameterMode.REFERENCE) {
+			String literal = literalRec.type == Symbol.Type.STRING ? "\"" + literalRec.lexeme + "\"" : literalRec.lexeme;
+			if(signRec.negative)
+				literal = "-" + literal;
+			output.append("push #" + literal + "\n");	// Push primitive literal
+		}
+		else
+			parser.semanticError("Literal values cannot be used as in-out parameters");
 	}
 	
 	/**
@@ -210,9 +218,13 @@ public class SemanticAnalyzer {
 	 * to push relevant value onto stack
 	 * @param boolLit
 	 */
-	public void genPushBoolLit(Symbol boolLit) {
-		String bool = boolLit.lexeme.equalsIgnoreCase("true") ? "1" : "0";
-		output.append("push #" + bool + "\n");
+	public void genPushBoolLit(Symbol boolLit, Symbol.ParameterMode mode) {
+		if(mode != Symbol.ParameterMode.REFERENCE) {
+			String bool = boolLit.lexeme.equalsIgnoreCase("true") ? "1" : "0";
+			output.append("push #" + bool + "\n");
+		}
+		else
+			parser.semanticError("Boolean literals cannot be used as in-out parameters");
 	}
 	
 	/**

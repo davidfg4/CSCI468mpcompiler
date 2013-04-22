@@ -9,7 +9,7 @@ program Main;
         Fred := c;
       end; }
 
-  procedure Proc(proc1 : integer);
+  function Proc(var proc1 : integer) : integer;
   var procVar1 : integer; 
   begin
     read(procVar1);
@@ -21,7 +21,9 @@ program Main;
   begin
     read(a,b);
     {c := Fred(a);}
-    Proc(-(a+b));
+    {Proc(1);}
+    {Proc(a+b);}
+    Proc(true);
     writeln('b:', b);
     writeln('c:', c);
 end.

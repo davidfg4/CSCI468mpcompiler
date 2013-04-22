@@ -1531,42 +1531,42 @@ public class MPparser {
 		case MP_INTEGER_LIT:
 			factorRec.type = Symbol.Type.INTEGER;
 			factorRec.lexeme = lookahead.getLexeme();
-			analyzer.genPushLiteral(factorRec, signRec);
+			analyzer.genPushLiteral(factorRec, signRec, parameterMode);
 			match(Token.TokenName.MP_INTEGER_LIT);
 			break;
 		// rule 113: Factor --> UnsignedFloat
 		case MP_FLOAT_LIT:
 			factorRec.type = Symbol.Type.FLOAT;
 			factorRec.lexeme = lookahead.getLexeme();
-			analyzer.genPushLiteral(factorRec, signRec);
+			analyzer.genPushLiteral(factorRec, signRec, parameterMode);
 			match(Token.TokenName.MP_FLOAT_LIT);
 			break;
 		// rule 113: Factor --> UnsignedFloat
 		case MP_FIXED_LIT: 
 			factorRec.type = Symbol.Type.FLOAT;
 			factorRec.lexeme = lookahead.getLexeme();
-			analyzer.genPushLiteral(factorRec, signRec);
+			analyzer.genPushLiteral(factorRec, signRec, parameterMode);
 			match(Token.TokenName.MP_FIXED_LIT);
 			break;
 		// rule 114: Factor --> StringLiteral
 		case MP_STRING_LIT:
 			factorRec.type = Symbol.Type.STRING;
 			factorRec.lexeme = lookahead.getLexeme();
-			analyzer.genPushLiteral(factorRec, new Symbol());
+			analyzer.genPushLiteral(factorRec, new Symbol(), parameterMode);
 			match(Token.TokenName.MP_STRING_LIT);
 			break;
 		// rule 115: Factor --> "True"
 		case MP_TRUE:
 			factorRec.type = Symbol.Type.BOOLEAN;
 			factorRec.lexeme = lookahead.getLexeme();
-			analyzer.genPushBoolLit(factorRec);
+			analyzer.genPushBoolLit(factorRec, parameterMode);
 			match(Token.TokenName.MP_TRUE);
 			break;
 		// rule 116: Factor --> "False"
 		case MP_FALSE:
 			factorRec.type = Symbol.Type.BOOLEAN;
 			factorRec.lexeme = lookahead.getLexeme();
-			analyzer.genPushBoolLit(factorRec);
+			analyzer.genPushBoolLit(factorRec, parameterMode);
 			match(Token.TokenName.MP_FALSE);
 			break;
 		// Factor --> "not" Factor
@@ -1590,7 +1590,7 @@ public class MPparser {
 			} else if (assignedVar.kind == Symbol.Kind.VARIABLE || assignedVar.kind == Symbol.Kind.PARAMETER) {
 				// Factor --> VariableIdentifier
 				variableIdentifier(factorRec);
-				analyzer.genPushId(factorRec, signRec); // TODO ..., parameterMode)
+				analyzer.genPushId(factorRec, signRec, parameterMode);
 			} else if (assignedVar.kind == Symbol.Kind.FUNCTION) {
 				// Factor --> FunctionIdentifier OptionalActualParameterList
 				Symbol funIdRec = new Symbol();
