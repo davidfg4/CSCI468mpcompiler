@@ -9,9 +9,12 @@ public class SymbolTable {
 	
 	SymbolTable() {
 		symbolTables = new LinkedList<SubSymbolTable<String,Symbol>>();
-		currentOffset = 0;
+		currentOffset = Symbol.Type.INTEGER.size;	// save space on stack for display register
 		currentNestLevel = 0;
 	}
+	
+	public int getCurrentOffset() { return currentOffset; }
+	public void incrementOffset() { currentOffset += Symbol.Type.INTEGER.size; }
 	
 	public void insertSymbol(Symbol s) throws SymbolAlreadyExistsException {
 		try {
@@ -49,7 +52,7 @@ public class SymbolTable {
 			currentNestLevel++;	// increase nest level
 		}
 		symbolTables.add(0, new SubSymbolTable<String,Symbol>(name));
-		currentOffset = 0;	// reset offset
+		currentOffset = Symbol.Type.INTEGER.size;	// reset offset, save space for display register
 	}
 	
 	public void deleteSymbolTable() {

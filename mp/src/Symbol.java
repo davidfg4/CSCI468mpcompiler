@@ -1,23 +1,27 @@
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class Symbol {
 	public enum Kind {
-		VARIABLE, PARAMETER, PROCEDURE, FUNCTION
+		VARIABLE, PARAMETER, PROCEDURE, FUNCTION, MAIN
 	}
 	public enum Type {
-		NONE, INTEGER, FLOAT, STRING, BOOLEAN
+		NONE(0), INTEGER(1), FLOAT(1), STRING(1), BOOLEAN(1);
+		int size;
+		Type(int s) { size = s; }
 	}
 	public enum ParameterMode {
-		COPY, REFERENCE
+		NONE, COPY, REFERENCE
 	}
 
 	public String lexeme;
 	public Kind kind;
 	public Type type;
-	public ParameterMode mode;
+	public ParameterMode mode;	
 	public List<Symbol> parameters;
-	public int size, offset, nestLevel;	// for semantics
+	private Iterator<Symbol> parameterIterator = null;
+	public int size, offset, variableOffset, nestLevel;	// for semantics
 	public boolean negative = false;	
 	public String label1, label2;
 	
@@ -30,17 +34,54 @@ public class Symbol {
 		type = t;
 		if (k == Kind.PROCEDURE || k == Kind.FUNCTION)
 			parameters = new ArrayList<Symbol>();
-		// The machine spec seems to indicate that ints, floats, 
-		// and strings all have size of 1, but the following
-		// should make for easy adjustment if this is not the case.
-		switch(type) {
-			case INTEGER:
-			case FLOAT:
-			case STRING:
-			case BOOLEAN:
-				size = 1;	
-				break;
+		size = t.size;
+	}
+	
+	/**
+	 * Used for matching number of actual parameters with number of formal parameters
+	 * @return
+	 */
+	public boolean hasNextParameter() { return parameterIterator.hasNext(); }
+	
+	/**
+	 * Used for type checking actual vs formal parameters and checking for too many actual
+	 * parameters supplied
+	 * @return
+	 */
+	public Symbol getNextParameter() {
+		if(parameterIterator == null) 
+			parameterIterator = parameters.iterator();
+		if(hasNextParameter())
+			return parameterIterator.next();
+		return null;
+	}
+	
+	/**
+	 * For Symbols that represent functions or procedures this totals the offset needed for 
+	 * parameters (and thus variables) in the activation record
+	 * @return
+	 */
+	public int getParameterOffset() {
+		int funcOrProcParamOffset = 0;
+		if(parameters != null) {
+			for(Symbol s : parameters)
+				funcOrProcParamOffset += s.size;// total offset for parameters, sort of trivial 
+			return funcOrProcParamOffset;		// since each param is size 1, could call parameters.size()
 		}
+		return 0;
+	}
+	
+	/**
+	 * Returns total activation record size for functions/procedure/main 
+	 * activation record setup
+	 * @return
+	 */
+	public int getActivationRecordSize() {
+		// activation rec size is param offset total + var offset total + display register space
+		int arSize = getParameterOffset() + variableOffset + Type.INTEGER.size;
+		if(kind == Kind.FUNCTION || kind == Kind.PROCEDURE)
+			arSize += Type.INTEGER.size ; 	// save space for return addr when not main's activation rec
+		return arSize;
 	}
 
 	public String toString() {

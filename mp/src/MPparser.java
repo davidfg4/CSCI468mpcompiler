@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 
@@ -114,7 +115,10 @@ public class MPparser {
 			String programName = programHeading();
 			match(Token.TokenName.MP_SCOLON);
 			symbolTable.createSymbolTable(programName);
-			block();
+			Symbol progRec = new Symbol();
+			progRec.kind = Symbol.Kind.MAIN;
+			analyzer.genBranchMain(progRec);
+			block(progRec);	// pass progRec down to get offset for variables declared
 			match(Token.TokenName.MP_PERIOD);
 			//System.out.println(symbolTable);
 			symbolTable.deleteSymbolTable();
@@ -149,16 +153,16 @@ public class MPparser {
 	 * Pre: Block is leftmost nonterminal
 	 * Post: Block has been expanded
 	 */
-	private void block() {
+	private void block(Symbol funcProcRec) {
 		switch (lookahead.getToken()) {
 		// rule 4: Block --> VariableDeclarationPart ProcedureAndFunctionDeclarationPart StatementPart
 		case MP_BEGIN:
 		case MP_FUNCTION:
 		case MP_PROCEDURE:
 		case MP_VAR:
-			variableDeclarationPart();
-			procedureAndFunctionDeclarationPart();
-			statementPart();
+			variableDeclarationPart(funcProcRec);		// get variable offset, set in funcProcRec to
+			procedureAndFunctionDeclarationPart();		// be used for activation record setup
+			statementPart(funcProcRec);
 			break;
 		default:
 			syntaxErrorExpected("'begin', 'function', 'procedure', or 'var'");
@@ -170,14 +174,14 @@ public class MPparser {
 	 * Pre: VariableDeclarationPart is leftmost nonterminal
 	 * Post: VariableDeclarationPart is expanded
 	 */
-	private void variableDeclarationPart() {
+	private void variableDeclarationPart(Symbol funcProcRec) {
 		switch (lookahead.getToken()) {
 		// rule 5: VariableDeclarationPart --> "var" VariableDeclaration ";" VariableDeclarationTail
 		case MP_VAR:
 			match(Token.TokenName.MP_VAR);
-			variableDeclaration();
+			variableDeclaration(funcProcRec);
 			match(Token.TokenName.MP_SCOLON);
-			variableDeclarationTail();
+			variableDeclarationTail(funcProcRec);
 			break;
 		// rule 6: VariableDeclarationPart  --> eplison
 		case MP_BEGIN:
@@ -194,13 +198,13 @@ public class MPparser {
 	 * Pre: VariableDeclarationTail is leftmost nonterminal
 	 * Post: VariableDeclarationTail is expanded
 	 */
-	private void variableDeclarationTail() {
+	private void variableDeclarationTail(Symbol funcProcRec) {
 		switch (lookahead.getToken()) {
 		// rule 7: VariableDeclarationTail --> VariableDeclaration ";" VariableDeclarationTail
 		case MP_IDENTIFIER:
-			variableDeclaration();
+			variableDeclaration(funcProcRec);
 			match(Token.TokenName.MP_SCOLON);
-			variableDeclarationTail();
+			variableDeclarationTail(funcProcRec);
 			break;
 		// rule 8: VariableDeclarationTail --> epsilon
 		case MP_BEGIN:
@@ -217,11 +221,11 @@ public class MPparser {
 	 * Pre: VariableDeclaration is leftmost nonterminal
 	 * Post: VariableDeclaration is expanded
 	 */
-	private void variableDeclaration() {
+	private void variableDeclaration(Symbol funcProcRec) {
 		switch (lookahead.getToken()) {
 		// rule 9: VariableDeclaration --> IdentifierList ":" Type
 		case MP_IDENTIFIER:
-			matchIdentifiersColonType(Symbol.Kind.VARIABLE);
+			funcProcRec.variableOffset += matchIdentifiersColonType(Symbol.Kind.VARIABLE, Symbol.ParameterMode.NONE);
 			break;
 		default:
 			syntaxErrorExpected("'identifier'(1)");
@@ -296,9 +300,12 @@ public class MPparser {
 		// rule 15: ProcedureDeclaration --> ProcedureHeading ";" Block ";" 
 		case MP_PROCEDURE:
 			// new Symbol Table created within here:
-			procedureHeading();
+			procedureHeading();	// TODO pass procRec down to get symbol
+			// parameters have been added to symbol table, so now we can increment offset
+			// to save a space on the stack for the return address in activation record:
+			symbolTable.incrementOffset();
 			match(Token.TokenName.MP_SCOLON);
-			block();
+			block(null);	// TODO pass procRec down to generate code for declaration
 			match(Token.TokenName.MP_SCOLON);
 			symbolTable.deleteSymbolTable();
 			break;
@@ -312,13 +319,17 @@ public class MPparser {
 	 * Post: FunctionDeclaration is expanded
 	 */
 	private void functionDeclaration() {
+		Symbol funcSym = new Symbol();
 		switch (lookahead.getToken()) {
 		// rule 16: FunctionDeclaration --> FunctionHeading ";" Block ";"
 		case MP_FUNCTION:
 			// new Symbol Table created within here:
-			functionHeading();
+			functionHeading(funcSym);	// pass funcSym down to get Symbol for function 
+			// parameters have been added to symbol table, so now we can increment offset
+			// to save a space on the stack for the return address in activation record:
+			symbolTable.incrementOffset();
 			match(Token.TokenName.MP_SCOLON);
-			block();
+			block(funcSym);		// funcSym used to generate code for procedure declaration
 			match(Token.TokenName.MP_SCOLON);
 			symbolTable.deleteSymbolTable();
 			break;
@@ -357,23 +368,26 @@ public class MPparser {
 	 * Pre: FunctionHeading is leftmost nonterminal
 	 * Post: ProcedureHeading is expanded
 	 */
-	private void functionHeading() {
+	private void functionHeading(Symbol functionSymbol) {
 		String functionName = "";
 		Symbol.Type type = null;
-		Symbol functionSymbol = null;
 		switch (lookahead.getToken()) {
 		// rule 18:FunctionHeading --> "function" FunctionIdentifier OptionalFormalParameterList Type
 		case MP_FUNCTION:
 			match(Token.TokenName.MP_FUNCTION);
 			functionName = lookahead.getLexeme();
 			try {
-				functionSymbol = new Symbol(functionName, Symbol.Kind.FUNCTION, Symbol.Type.NONE);
+				functionSymbol.lexeme = functionName;
+				functionSymbol.kind = Symbol.Kind.FUNCTION;
+				functionSymbol.type = Symbol.Type.NONE;
+				functionSymbol.parameters = new ArrayList<Symbol>();
 				symbolTable.insertSymbol(functionSymbol);
 				symbolTable.createSymbolTable(functionName);
+				functionSymbol.nestLevel++;
 			} catch (SymbolTable.SymbolAlreadyExistsException e) {
 				syntaxErrorGeneric("Error: Function '" + functionName + "' already exists in the current scope.");
 			}
-			functionIdentifier(new Symbol());
+			functionIdentifier(null);
 			optionalFormalParameterList();
 			match(Token.TokenName.MP_COLON);
 			type = type();
@@ -457,7 +471,7 @@ public class MPparser {
 		switch (lookahead.getToken()) {
 		// rule 25: ValueParameterSection --> IdentifierList ":" Type
 		case MP_IDENTIFIER:
-			matchIdentifiersColonType(Symbol.Kind.PARAMETER);
+			matchIdentifiersColonType(Symbol.Kind.PARAMETER, Symbol.ParameterMode.COPY);
 			break;
 		default:
 			syntaxErrorExpected("'identifier'(2)");
@@ -474,7 +488,7 @@ public class MPparser {
 		// rule 26: VariableParameterSection --> "var" IdentifierList ":" Type
 		case MP_VAR:
 			match(Token.TokenName.MP_VAR);
-			matchIdentifiersColonType(Symbol.Kind.PARAMETER);
+			matchIdentifiersColonType(Symbol.Kind.PARAMETER, Symbol.ParameterMode.REFERENCE);
 			break;
 		default:
 			syntaxErrorExpected("'var'");
@@ -482,30 +496,37 @@ public class MPparser {
 		}
 	}
 	
-	private void matchIdentifiersColonType(Symbol.Kind kind)
+	private int matchIdentifiersColonType(Symbol.Kind kind, Symbol.ParameterMode mode)
 	{
 		Collection<String> identifiers = identifierList();
 		match(Token.TokenName.MP_COLON);
 		Symbol.Type type = type();
+		int variableOffset = 0;
 		for (String identifier : identifiers)
 		{
 			try {
-				symbolTable.insertSymbol(new Symbol(identifier, kind, type));
+				Symbol var = new Symbol(identifier, kind, type);
+				var.mode = mode;	// set COPY/REFERENCE/NONE
+				symbolTable.insertSymbol(var);
+				variableOffset += var.size;
 			} catch (SymbolTable.SymbolAlreadyExistsException e) {
 				syntaxErrorGeneric("Error: Identifier '" + identifier + "' already exists in the current scope.");
 			}
 		}
+		return variableOffset;
 	}
 
 	/**
 	 * Pre: StatementPart is leftmost nonterminal
 	 * Post: StatementPart is expanded
 	 */
-	private void statementPart() {
+	private void statementPart(Symbol funcProcRec) {
 		switch (lookahead.getToken()) {
 		// rule 27: StatementPart --> CompoundStatement
 		case MP_BEGIN:
+			analyzer.genBeginFuncOrProcDeclaration(funcProcRec);	// Set up second part of activation record
 			compoundStatement();
+			analyzer.genEndFuncOrProcDeclaration(funcProcRec);
 			break;
 		default:
 			syntaxErrorExpected("'begin'");
@@ -782,7 +803,7 @@ public class MPparser {
 		case MP_FIXED_LIT:
 		case MP_STRING_LIT:
 		case MP_NOT:
-			ordinalExpression(new Symbol());
+			ordinalExpression(new Symbol(), Symbol.ParameterMode.NONE);
 			analyzer.genWriteStmt();	// value of param expression should be on stack top
 			break;
 		default:
@@ -809,15 +830,14 @@ public class MPparser {
 				// rule 51: AssignmentStatement --> VariableIdentifier ":=" Expression
 				variableIdentifier(idRecord);
 				match(Token.TokenName.MP_ASSIGN);
-				expression(exprRecord);
+				expression(exprRecord, Symbol.ParameterMode.NONE);
 				analyzer.genAssignStmt(idRecord, exprRecord);
 			} else if (assignedVar.kind == Symbol.Kind.FUNCTION) {
 				// rule 52: AssignmentStatement --> FunctionIdentifier ":=" Expression
-				// personal note: how do you assign something to a function? what is going on here?
 				functionIdentifier(idRecord);
 				match(Token.TokenName.MP_ASSIGN);
-				expression(exprRecord);
-				analyzer.genAssignStmt(idRecord, exprRecord);	// ?? 
+				expression(exprRecord, Symbol.ParameterMode.NONE);
+				// TODO put return value in slot reserved for it
 			}
 			break;
 		default:
@@ -837,7 +857,7 @@ public class MPparser {
 		// rule 53: IfStatement --> "if" BooleanExpression "then" Statement OptionalElsePart
 		case MP_IF:
 			match(Token.TokenName.MP_IF);
-			booleanExpression(exprRec);
+			booleanExpression(exprRec, Symbol.ParameterMode.NONE);	// TODO can if statement bool exprs be out-mode?
 			analyzer.genIfTest(ifRec, exprRec);
 			match(Token.TokenName.MP_THEN);
 			statement();
@@ -886,7 +906,7 @@ public class MPparser {
 			analyzer.genBeginRepeat(repeatRec);
 			statementSequence();
 			match(Token.TokenName.MP_UNTIL);
-			booleanExpression(exprRec);
+			booleanExpression(exprRec, Symbol.ParameterMode.NONE);	// TODO out mode?
 			analyzer.genEndRepeat(repeatRec, exprRec);
 			break;
 		default:
@@ -907,7 +927,7 @@ public class MPparser {
 		case MP_WHILE:
 			match(Token.TokenName.MP_WHILE);
 			analyzer.genBeginWhile(whileRec);
-			booleanExpression(exprRec);
+			booleanExpression(exprRec, Symbol.ParameterMode.NONE);	// TODO out mode?
 			analyzer.genWhileTest(whileRec, exprRec);
 			match(Token.TokenName.MP_DO);
 			statement();
@@ -982,7 +1002,7 @@ public class MPparser {
 //		case MP_TRUE:		// true and false would be grammatically acceptable as well..
 //		case MP_FALSE:
 		case MP_NOT:
-			ordinalExpression(exprRec);
+			ordinalExpression(exprRec, Symbol.ParameterMode.NONE);
 			break;
 		default: 
 			syntaxErrorExpected("an expression");
@@ -1028,7 +1048,7 @@ public class MPparser {
 //		case MP_TRUE:
 //		case MP_FALSE:
 		case MP_NOT:
-			ordinalExpression(exprRec);
+			ordinalExpression(exprRec, Symbol.ParameterMode.NONE);
 			break;
 		default:
 			syntaxErrorExpected("an expression");
@@ -1045,7 +1065,7 @@ public class MPparser {
 		// rule 64: ProcedureStatement --> ProcedureIdentifier OptionalActualParameterList
 		case MP_IDENTIFIER:
 			procedureIdentifier();
-			optionalActualParameterList();
+			optionalActualParameterList(null);	// TODO worry about procedures
 			break;
 		default:
 			syntaxErrorExpected("a procedure identifier");
@@ -1057,14 +1077,16 @@ public class MPparser {
 	 * Pre: OptionalActualParameterList is leftmost nonterminal
 	 * Post: OptionalActualParameterList is expanded
 	 */
-	private void optionalActualParameterList() {
+	private void optionalActualParameterList(Symbol funProcSym) {
 		switch (lookahead.getToken()) {
 		// rule 65: OptionalActualParameterList --> "(" ActualParameter ActualParameterTail ")"
 		case MP_LPAREN:
 			match(Token.TokenName.MP_LPAREN);
-			actualParameter();
-			actualParameterTail();
+			actualParameter(funProcSym);
+			actualParameterTail(funProcSym);
 			match(Token.TokenName.MP_RPAREN);
+			if(funProcSym.hasNextParameter())
+				semanticError("Too few actual parameters supplied for " + funProcSym.lexeme);
 			break;
 		// OptionalActualParameterList --> epsilon
 		case MP_COMMA:
@@ -1101,13 +1123,13 @@ public class MPparser {
 	 * Pre: ActualParameterTail is leftmost nonterminal
 	 * Post: ActualParameterTail is expanded
 	 */
-	private void actualParameterTail() {
+	private void actualParameterTail(Symbol funProcRec) {
 		switch (lookahead.getToken()) {
 		// rule 67: ActualParameterTail --> "," ActualParameter ActualParameterTail
 		case MP_COMMA:
 			match(Token.TokenName.MP_COMMA);
-			actualParameter();
-			actualParameterTail();
+			actualParameter(funProcRec);
+			actualParameterTail(funProcRec);
 			break;
 		// rule 68: ActualParameterTail --> epsilon
 		case MP_RPAREN:
@@ -1122,7 +1144,7 @@ public class MPparser {
 	 * Pre: ActualParameter is leftmost nonterminal
 	 * Post: ActualParameter is expanded
 	 */
-	private void actualParameter() {
+	private void actualParameter(Symbol funProcRec) {
 		switch (lookahead.getToken()) {
 		// rule 69: ActualParameter --> OrdinalExpression
 		case MP_LPAREN:
@@ -1136,7 +1158,11 @@ public class MPparser {
 		case MP_FALSE:
 		case MP_STRING_LIT:
 		case MP_NOT:
-			ordinalExpression(new Symbol());
+			Symbol formalParamRec = funProcRec.getNextParameter();
+			Symbol actualParamRec = new Symbol();
+			if(formalParamRec != null)
+				ordinalExpression(actualParamRec, formalParamRec.mode);
+			analyzer.parameterCheck(formalParamRec, actualParamRec);
 			break;
 		default:
 			syntaxErrorExpected("an expression");
@@ -1148,7 +1174,7 @@ public class MPparser {
 	 * Pre: Expression is leftmost nonterminal
 	 * Post: Expression is expanded
 	 */
-	private void expression(Symbol exprRec) {
+	private void expression(Symbol exprRec, Symbol.ParameterMode parameterMode) {
 		switch (lookahead.getToken()) {
 		// rule 70: Expression --> SimpleExpression OptionalRelationalPart
 		case MP_LPAREN:
@@ -1162,8 +1188,8 @@ public class MPparser {
 		case MP_FALSE:
 		case MP_STRING_LIT:
 		case MP_NOT:
-			simpleExpression(exprRec);
-			optionalRelationalPart(exprRec);
+			simpleExpression(exprRec, parameterMode);
+			optionalRelationalPart(exprRec, parameterMode);
 			break;
 		default:
 			syntaxErrorExpected("an expression");
@@ -1175,7 +1201,7 @@ public class MPparser {
 	 * Pre: OptionalRelationalPart is leftmost nonterminal
 	 * Post: OptionalRelationalPart is expanded
 	 */
-	private void optionalRelationalPart(Symbol leftSideRec) {
+	private void optionalRelationalPart(Symbol leftSideRec, Symbol.ParameterMode parameterMode) {
 		Symbol relOp = new Symbol();
 		Symbol rightSideRec = new Symbol();
 		Symbol resultRec = new Symbol();
@@ -1187,8 +1213,9 @@ public class MPparser {
 		case MP_LEQUAL:
 		case MP_GEQUAL:
 		case MP_NEQUAL:
+			analyzer.checkForExprAsOutMode(parameterMode);
 			relationalOperator(relOp);
-			simpleExpression(rightSideRec);
+			simpleExpression(rightSideRec, parameterMode);
 			analyzer.genArithmetic(leftSideRec, relOp, rightSideRec, resultRec);
 			analyzer.copy(resultRec, leftSideRec);
 			break;
@@ -1251,7 +1278,7 @@ public class MPparser {
 	 * Pre: SimpleExpression is leftmost nonterminal
 	 * Post: SimpleExpression is expanded
 	 */
-	private void simpleExpression(Symbol exprRec) {
+	private void simpleExpression(Symbol exprRec, Symbol.ParameterMode parameterMode) {
 		Symbol termRec = new Symbol();
 		Symbol termTailRec = new Symbol();
 		Symbol signRec = new Symbol();
@@ -1269,9 +1296,9 @@ public class MPparser {
 		case MP_TRUE:
 		case MP_FALSE:
 		case MP_STRING_LIT:
-			term(termRec, signRec);
+			term(termRec, signRec, parameterMode);
 			analyzer.copy(termRec, termTailRec); 	// pass LHS (termRec) type down
-			termTail(termTailRec);
+			termTail(termTailRec, parameterMode);
 			analyzer.copy(termTailRec, exprRec);	// pass result (termTailRec) up
 			break;
 		default:
@@ -1284,7 +1311,7 @@ public class MPparser {
 	 * Pre: TermTail is leftmost nonterminal
 	 * Post: TermTail is expanded
 	 */
-	private void termTail(Symbol leftSideRec) {
+	private void termTail(Symbol leftSideRec, Symbol.ParameterMode parameterMode) {
 		Symbol rightSideRec = new Symbol();
 		Symbol operatorRec = new Symbol();
 		Symbol resultRec = new Symbol();	
@@ -1293,10 +1320,11 @@ public class MPparser {
 		case MP_PLUS:
 		case MP_MINUS:
 		case MP_OR:
+			analyzer.checkForExprAsOutMode(parameterMode);
 			addingOperator(operatorRec);
-			term(rightSideRec, new Symbol());
+			term(rightSideRec, new Symbol(), parameterMode);
 			analyzer.genArithmetic(leftSideRec, operatorRec, rightSideRec, resultRec);
-			termTail(resultRec);
+			termTail(resultRec, parameterMode);
 			analyzer.copy(resultRec, leftSideRec);	// Pass sub-expression (resultRec) type up
 			break;
 		// rule 81: TermTail --> epsilon
@@ -1381,7 +1409,7 @@ public class MPparser {
 	 * Pre: Term is leftmost nonterminal
 	 * Post: Term is expanded
 	 */
-	private void term(Symbol termRec, Symbol signRec) {
+	private void term(Symbol termRec, Symbol signRec, Symbol.ParameterMode parameterMode) {
 		switch (lookahead.getToken()) {
 		// rule 88: Term --> Factor FactorTail
 		case MP_LPAREN:
@@ -1393,8 +1421,8 @@ public class MPparser {
 		case MP_FALSE:
 		case MP_STRING_LIT:
 		case MP_NOT:
-			factor(termRec, signRec);
-			factorTail(termRec);
+			factor(termRec, signRec, parameterMode);
+			factorTail(termRec, parameterMode);
 			break;
 		default:
 			syntaxErrorExpected("a term");
@@ -1406,7 +1434,7 @@ public class MPparser {
 	 * Pre: FactorTail is leftmost nonterminal
 	 * Post: FactorTail is expanded
 	 */
-	private void factorTail(Symbol leftSideRec) {
+	private void factorTail(Symbol leftSideRec, Symbol.ParameterMode parameterMode) {
 		Symbol rightSideRec = new Symbol();
 		Symbol operatorRec = new Symbol();
 		Symbol resultRec = new Symbol();
@@ -1416,10 +1444,11 @@ public class MPparser {
 		case MP_AND:
 		case MP_DIV:
 		case MP_MOD:
+			analyzer.checkForExprAsOutMode(parameterMode);
 			multiplyingOperator(operatorRec);
-			factor(rightSideRec, new Symbol());
+			factor(rightSideRec, new Symbol(), parameterMode);
 			analyzer.genArithmetic(leftSideRec, operatorRec, rightSideRec, resultRec);
-			factorTail(resultRec);
+			factorTail(resultRec, parameterMode);
 			analyzer.copy(resultRec, leftSideRec);	// Pass sub-expression (resultRec) type up
 			break;
 		// rule 90: FactorTail --> epsilon
@@ -1482,9 +1511,10 @@ public class MPparser {
 	 * Pre: Factor is leftmost nonterminal
 	 * Post: Factor is expanded
 	 */
-	private void factor(Symbol factorRec, Symbol signRec) {
+	private void factor(Symbol factorRec, Symbol signRec, Symbol.ParameterMode parameterMode) {
 		switch (lookahead.getToken()) {
 		// Factor --> UnsignedInteger
+		// TODO literals cannot be mode REFERENCE
 		case MP_INTEGER_LIT:
 			factorRec.type = Symbol.Type.INTEGER;
 			factorRec.lexeme = lookahead.getLexeme();
@@ -1529,13 +1559,13 @@ public class MPparser {
 		// Factor --> "not" Factor
 		case MP_NOT:
 			match(Token.TokenName.MP_NOT);
-			factor(factorRec, new Symbol());
+			factor(factorRec, new Symbol(), parameterMode);
 			analyzer.genNotOp(factorRec);
 			break;
 		// Factor --> "(" Expression ")"
 		case MP_LPAREN:
 			match(Token.TokenName.MP_LPAREN);
-			expression(factorRec);
+			expression(factorRec, parameterMode);
 			match(Token.TokenName.MP_RPAREN);
 			if(signRec.negative)
 				analyzer.genNegOp(factorRec);
@@ -1547,11 +1577,16 @@ public class MPparser {
 			} else if (assignedVar.kind == Symbol.Kind.VARIABLE || assignedVar.kind == Symbol.Kind.PARAMETER) {
 				// Factor --> VariableIdentifier
 				variableIdentifier(factorRec);
-				analyzer.genPushId(factorRec, signRec);
+				analyzer.genPushId(factorRec, signRec); // TODO ..., parameterMode)
 			} else if (assignedVar.kind == Symbol.Kind.FUNCTION) {
 				// Factor --> FunctionIdentifier OptionalActualParameterList
-				functionIdentifier(new Symbol());
-				optionalActualParameterList();
+				Symbol funIdRec = new Symbol();
+				functionIdentifier(funIdRec);
+				Symbol funSymbol = symbolTable.findSymbol(funIdRec.lexeme);
+				factorRec.type = funSymbol.type;
+				analyzer.genCallSetup(funSymbol);
+				optionalActualParameterList(funSymbol);	// pass funSymbol for type checking parameters
+				analyzer.genCall(funSymbol);
 			}
 			break;
 		default:
@@ -1621,8 +1656,10 @@ public class MPparser {
 		switch (lookahead.getToken()) {
 		// rule 103: FunctionIdentifier --> Identifier
 		case MP_IDENTIFIER:
-			funIdRecord.lexeme = lookahead.getLexeme();
-			funIdRecord.type = symbolTable.findSymbol(lookahead.getLexeme()).type;
+			if(funIdRecord != null) {
+				funIdRecord.lexeme = lookahead.getLexeme();
+				funIdRecord.type = symbolTable.findSymbol(lookahead.getLexeme()).type;
+			}
 			match(Token.TokenName.MP_IDENTIFIER);
 			break;
 		default:
@@ -1635,7 +1672,7 @@ public class MPparser {
 	 * Pre: BooleanExpression is leftmost nonterminal
 	 * Post: BooleanExpression is expanded
 	 */
-	private void booleanExpression(Symbol exprRec) {
+	private void booleanExpression(Symbol exprRec, Symbol.ParameterMode parameterMode) {
 		switch (lookahead.getToken()) {
 		// rule 104: BooleanExpression --> Expression
 		case MP_LPAREN:
@@ -1648,7 +1685,7 @@ public class MPparser {
 		case MP_TRUE:
 		case MP_FALSE:
 		case MP_NOT:
-			expression(exprRec);
+			expression(exprRec, parameterMode);
 			break;
 		default:
 			syntaxErrorExpected("a boolean expression");
@@ -1660,7 +1697,7 @@ public class MPparser {
 	 * Pre: OrdinalExpression is leftmost nonterminal
 	 * Post: OrdinalExpression is expanded
 	 */
-	private void ordinalExpression(Symbol exprRec) {
+	private void ordinalExpression(Symbol exprRec, Symbol.ParameterMode parameterMode) {
 		switch (lookahead.getToken()) {
 		// rule 105: OrdinalExpression --> Expression
 		case MP_LPAREN:
@@ -1674,7 +1711,7 @@ public class MPparser {
 		case MP_FALSE:
 		case MP_STRING_LIT:
 		case MP_NOT:
-			expression(exprRec);
+			expression(exprRec, parameterMode);
 			break;
 		default:
 			syntaxErrorExpected("a ordianl expression");

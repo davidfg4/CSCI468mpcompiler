@@ -163,6 +163,7 @@ public class SemanticAnalyzer {
 	 */
 	public void genPushId(Symbol idRec, Symbol signRec) {
 		Symbol var = symbolTable.findSymbol(idRec.lexeme);
+		// TODO if(mode == Symbol.ParameterMode.REFERENCE) calculate addr of ID, push on stack
 		output.append("push " + var.offset + "(D" + var.nestLevel + ")\n");
 		if(signRec.negative)
 			this.genNegOp(idRec);
@@ -391,5 +392,102 @@ public class SemanticAnalyzer {
 		output.append("pop " + ctrlVar.offset + "(D" + ctrlVar.nestLevel + ")\n");
 		output.append("br " + forRec.label1 + "\n");
 		output.append(forRec.label2 + ":\n");
+	}
+	
+	public void genBranchMain(Symbol progRec) {
+		progRec.label1 = this.generateLabel();
+		output.append("br " + progRec.label1 + "\n");
+	}
+	
+	/**
+	 * Checks for too many actual parameters specified, and type matches actual
+	 * to formal parameters
+	 * @param formalParameter
+	 * @param actualParameter
+	 */
+	public void parameterCheck(Symbol formalParameter, Symbol actualParameter) {
+		if(formalParameter == null)
+			parser.semanticError("Too many actual parameters supplied for function");
+		else 
+			// TODO cast parameter value to float/int; make casts method to do this for this method and genAssn?
+			if(formalParameter.type != actualParameter.type) 
+				parser.semanticError("Actual parameter type does not match formal parameter type");
+		// "Expression result does not match expected type"
+	}
+	
+	/**
+	 * Checks for expressions being passed as out-mode actual parameters, which
+	 * is semantically incorrect
+	 * @param mode
+	 */
+	public void checkForExprAsOutMode(Symbol.ParameterMode mode) {
+		if(mode == Symbol.ParameterMode.REFERENCE)
+			parser.semanticError("Expressions cannot be supplied as out mode parameters");
+	}
+	
+	/**
+	 * Generates IR to save space on stack for return value (for functions) and display register
+	 * @param funProcSym
+	 */
+	public void genCallSetup(Symbol funProcSym) {
+		if(funProcSym.kind == Symbol.Kind.FUNCTION)
+			output.append("add SP #" + Symbol.Type.INTEGER.size + " SP ; return value\n");// save space for return value for functions
+		output.append("add SP #" + Symbol.Type.INTEGER.size + " SP ; display register\n");	// save space for callee's display register
+		// parameters are pushed (in order) by expression
+	}
+	
+	/**
+	 * Generates IR for calling function and (after function completes)
+	 * popping display register/parameters off of stack. This should effectively
+	 * leave the return value on top of the stack for functions
+	 * @param callee
+	 */
+	public void genCall(Symbol callee) {
+		// call function
+		output.append("call " + callee.label1 + " ; call " + callee.lexeme + "\n");
+		// remove parameters and display register from stack
+		int popSize = callee.getParameterOffset() + Symbol.Type.INTEGER.size;
+		output.append("sub SP #" + popSize + " SP\n");
+	}
+	
+	/**
+	 * Generates IR for func/proc label, to reserve space for variables, save old display register
+	 * and to set display register to point to start of activation record.
+	 * @param funcProcRec
+	 */
+	public void genBeginFuncOrProcDeclaration(Symbol funcProcRec) {
+		if(funcProcRec.kind != Symbol.Kind.MAIN)
+			funcProcRec.label1 = this.generateLabel();	// main's label is already generated
+		output.append(funcProcRec.label1 + ": ; " + funcProcRec.lexeme + "\n");	// drop label
+		if(funcProcRec.kind == Symbol.Kind.MAIN)
+			output.append("add SP #" + Symbol.Type.INTEGER.size + " SP\n");	// leave space for display register for main
+		int activationRecordSize = funcProcRec.getActivationRecordSize(); // leave space in AR for func/proc variables
+		output.append("add SP #" + funcProcRec.variableOffset + " SP\n");	// save old DN in AR
+		output.append("mov D" + funcProcRec.nestLevel + " -" + activationRecordSize + "(SP)\n");
+		// set display register to point to start of activation record:
+		output.append("sub SP #" + activationRecordSize + " D" + funcProcRec.nestLevel + "\n"); 
+	}
+	
+	/**
+	 * Generates IR to restore display register's old value, pop local variables, and call ret
+	 * which pops top of stack (return addr) into the PC.
+	 * Also used for main, in which case no 'ret' is generated and ar pop is 1 larger because
+	 * ret pops stack
+	 * @param funcProcRec
+	 */
+	public void genEndFuncOrProcDeclaration(Symbol funcProcRec) {
+		// TODO put return value at appropriate place on stack
+		int activationRecordSize = funcProcRec.getActivationRecordSize();
+		output.append("mov -" + activationRecordSize + "(SP) D" + funcProcRec.nestLevel + "\n");
+		if(funcProcRec.kind == Symbol.Kind.FUNCTION || funcProcRec.kind == Symbol.Kind.PROCEDURE) {
+			// func/proc teardown
+			output.append("sub SP #" + funcProcRec.variableOffset + " SP\n");
+			output.append("ret\n");
+		}
+		else { // main teardown
+			int popSize = funcProcRec.variableOffset + Symbol.Type.INTEGER.size;
+			output.append("sub SP #" + popSize + " SP\n");
+			output.append("hlt");
+		}
 	}
 }
