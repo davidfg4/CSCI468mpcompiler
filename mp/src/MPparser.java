@@ -296,16 +296,17 @@ public class MPparser {
 	 * Post: ProcedureDeclaration is expanded
 	 */
 	private void procedureDeclaration() {
+		Symbol procSym = new Symbol();
 		switch (lookahead.getToken()) {
 		// rule 15: ProcedureDeclaration --> ProcedureHeading ";" Block ";" 
 		case MP_PROCEDURE:
 			// new Symbol Table created within here:
-			procedureHeading();	// TODO pass procRec down to get symbol
+			procedureHeading(procSym);	// pass procRec down to get symbol
 			// parameters have been added to symbol table, so now we can increment offset
 			// to save a space on the stack for the return address in activation record:
 			symbolTable.incrementOffset();
 			match(Token.TokenName.MP_SCOLON);
-			block(null);	// TODO pass procRec down to generate code for declaration
+			block(procSym);	// pass procRec down to generate code for declaration
 			match(Token.TokenName.MP_SCOLON);
 			symbolTable.deleteSymbolTable();
 			break;
@@ -343,7 +344,7 @@ public class MPparser {
 	 * Pre: ProcedureHeading is leftmost nonterminal
 	 * Post: ProcedureHeading is expanded
 	 */
-	private void procedureHeading() {
+	private void procedureHeading(Symbol procSymbol) {
 		String procedureName = "";
 		switch (lookahead.getToken()) {
 		// rule 17: ProcedureHeading --> "procedure" ProcedureIdentifier OptionalFormalParameterList
@@ -351,12 +352,19 @@ public class MPparser {
 			match(Token.TokenName.MP_PROCEDURE);
 			procedureName = lookahead.getLexeme();
 			try {
-				symbolTable.insertSymbol(new Symbol(procedureName, Symbol.Kind.PROCEDURE, Symbol.Type.NONE));
+				procSymbol.lexeme = procedureName;
+				procSymbol.kind = Symbol.Kind.PROCEDURE;
+				procSymbol.type = Symbol.Type.NONE;
+				procSymbol.parameters = new ArrayList<Symbol>();
+				symbolTable.insertSymbol(procSymbol);
 				symbolTable.createSymbolTable(procedureName);
+				procSymbol.nestLevel++;
+//				symbolTable.insertSymbol(new Symbol(procedureName, Symbol.Kind.PROCEDURE, Symbol.Type.NONE));
+//				symbolTable.createSymbolTable(procedureName);
 			} catch (SymbolTable.SymbolAlreadyExistsException e) {
 				syntaxErrorGeneric("Error: Procedure '" + procedureName + "' already exists in the current scope.");
 			}
-			procedureIdentifier();
+			procedureIdentifier(null);
 			optionalFormalParameterList();
 			break;
 		default:
@@ -837,7 +845,7 @@ public class MPparser {
 				functionIdentifier(idRecord);
 				match(Token.TokenName.MP_ASSIGN);
 				expression(exprRecord, Symbol.ParameterMode.NONE);
-				// TODO put return value in slot reserved for it
+				analyzer.genStoreReturnValue(idRecord);
 			}
 			break;
 		default:
@@ -906,7 +914,7 @@ public class MPparser {
 			analyzer.genBeginRepeat(repeatRec);
 			statementSequence();
 			match(Token.TokenName.MP_UNTIL);
-			booleanExpression(exprRec, Symbol.ParameterMode.NONE);	// TODO out mode?
+			booleanExpression(exprRec, Symbol.ParameterMode.NONE);
 			analyzer.genEndRepeat(repeatRec, exprRec);
 			break;
 		default:
@@ -927,7 +935,7 @@ public class MPparser {
 		case MP_WHILE:
 			match(Token.TokenName.MP_WHILE);
 			analyzer.genBeginWhile(whileRec);
-			booleanExpression(exprRec, Symbol.ParameterMode.NONE);	// TODO out mode?
+			booleanExpression(exprRec, Symbol.ParameterMode.NONE);
 			analyzer.genWhileTest(whileRec, exprRec);
 			match(Token.TokenName.MP_DO);
 			statement();
@@ -1064,8 +1072,13 @@ public class MPparser {
 		switch (lookahead.getToken()) {
 		// rule 64: ProcedureStatement --> ProcedureIdentifier OptionalActualParameterList
 		case MP_IDENTIFIER:
-			procedureIdentifier();
-			optionalActualParameterList(null);	// TODO worry about procedures
+			Symbol procIdRec = new Symbol();
+			procedureIdentifier(procIdRec);
+			Symbol procSymbol = symbolTable.findSymbol(procIdRec.lexeme);
+			//procSymbol.kind = Symbol.Kind.PROCEDURE;	// TODO function calls which do not use return value
+			analyzer.genCallSetup(procSymbol);			// ie not used in an expression, etc
+			optionalActualParameterList(procSymbol);
+			analyzer.genCall(procSymbol);
 			break;
 		default:
 			syntaxErrorExpected("a procedure identifier");
@@ -1636,10 +1649,14 @@ public class MPparser {
 	 * Pre: ProcedureIdentifier is leftmost nonterminal
 	 * Post: ProcedureIdentifier is expanded
 	 */
-	private void procedureIdentifier() {
+	private void procedureIdentifier(Symbol procIdRec) {
 		switch (lookahead.getToken()) {
 		// rule 102: ProcedureIdentifier --> Identifier
 		case MP_IDENTIFIER:
+			if(procIdRec != null) {
+				procIdRec.lexeme = lookahead.getLexeme();
+				procIdRec.type = Symbol.Type.NONE;
+			}
 			match(Token.TokenName.MP_IDENTIFIER);
 			break;
 		default:
