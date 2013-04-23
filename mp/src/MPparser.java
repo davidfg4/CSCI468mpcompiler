@@ -1075,8 +1075,9 @@ public class MPparser {
 			Symbol procIdRec = new Symbol();
 			procedureIdentifier(procIdRec);
 			Symbol procSymbol = symbolTable.findSymbol(procIdRec.lexeme);
-			//procSymbol.kind = Symbol.Kind.PROCEDURE;	// TODO function calls which do not use return value
-			analyzer.genCallSetup(procSymbol);			// ie not used in an expression, etc
+			if(procSymbol.kind == Symbol.Kind.FUNCTION)
+				this.semanticError("Functions must be used in an expression");	// Assuming this is true
+			analyzer.genCallSetup(procSymbol);
 			optionalActualParameterList(procSymbol);
 			analyzer.genCall(procSymbol);
 			break;
@@ -1527,7 +1528,6 @@ public class MPparser {
 	private void factor(Symbol factorRec, Symbol signRec, Symbol.ParameterMode parameterMode) {
 		switch (lookahead.getToken()) {
 		// Factor --> UnsignedInteger
-		// TODO literals cannot be mode REFERENCE
 		case MP_INTEGER_LIT:
 			factorRec.type = Symbol.Type.INTEGER;
 			factorRec.lexeme = lookahead.getLexeme();

@@ -23,7 +23,7 @@ program Main;
     {c := Fred(a);}
     {Proc(1);}
     {Proc(a+b);}
-    Proc(true);
+    Proc(a);
     writeln('b:', b);
     writeln('c:', c);
 end.
