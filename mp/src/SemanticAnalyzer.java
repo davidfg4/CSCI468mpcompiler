@@ -62,8 +62,9 @@ public class SemanticAnalyzer {
 		else if(id.type != expr.type)
 			parser.semanticError("Incompatible types encountered for assignement statement: " + id.type + " := " + expr.type);
 		Symbol var = symbolTable.findSymbol(id.lexeme);
+		String dereference = var.mode == Symbol.ParameterMode.REFERENCE ? "@" : "";
 		// assuming parser will catch undeclared id's so no need to null check
-		output.append("pop " + var.offset + "(D" + var.nestLevel + ")\n" );
+		output.append("pop " + dereference + var.offset + "(D" + var.nestLevel + ")\n" );
 	}
 	
 	/**
@@ -164,10 +165,13 @@ public class SemanticAnalyzer {
 	public void genPushId(Symbol idRec, Symbol signRec, Symbol.ParameterMode mode) {
 		Symbol var = symbolTable.findSymbol(idRec.lexeme);
 		if(mode == Symbol.ParameterMode.REFERENCE) {
-			output.append("REFERENCE PARAMETER ADDR CALCULATION"); // TODO calculate adress of reference parameter
+			output.append("push D" + var.nestLevel + "\n");	
+			output.append("push #" + var.offset + "\n");
+			output.append("adds\n");	// calculate variable address
 		}
 		else {
-			output.append("push " + var.offset + "(D" + var.nestLevel + ")\n");
+			String dereference = var.mode == Symbol.ParameterMode.REFERENCE ? "@" : "";	// if ref mode, dereference
+			output.append("push " + dereference + var.offset + "(D" + var.nestLevel + ")\n");
 			if(signRec.negative)
 				this.genNegOp(idRec);
 		}
@@ -262,7 +266,8 @@ public class SemanticAnalyzer {
 				parser.semanticError("Unsupported parameter type supplied for read");
 				break;
 		}
-		output.append(rdOp + var.offset + "(D" + var.nestLevel + ")\n");
+		String dereference = var.mode == Symbol.ParameterMode.REFERENCE ? "@" : "";
+		output.append(rdOp + dereference + var.offset + "(D" + var.nestLevel + ")\n");
 	}
 	
 	/**
@@ -460,6 +465,8 @@ public class SemanticAnalyzer {
 		// remove parameters and display register from stack
 		int popSize = callee.getParameterOffset() + Symbol.Type.INTEGER.size;
 		output.append("sub SP #" + popSize + " SP\n");
+		if(callee.negative)
+			output.append("NEGS");
 	}
 	
 	/**
@@ -473,7 +480,7 @@ public class SemanticAnalyzer {
 		output.append(funcProcRec.label1 + ": ; " + funcProcRec.lexeme + "\n");	// drop label
 		if(funcProcRec.kind == Symbol.Kind.MAIN)
 			output.append("add SP #" + Symbol.Type.INTEGER.size + " SP\n");	// leave space for display register for main
-		int activationRecordSize = funcProcRec.getActivationRecordSize(); // leave space in AR for func/proc variables
+		int activationRecordSize = funcProcRec.getActivationRecordSize(); 	// leave space in AR for func/proc variables
 		output.append("add SP #" + funcProcRec.variableOffset + " SP\n");	// save old DN in AR
 		output.append("mov D" + funcProcRec.nestLevel + " -" + activationRecordSize + "(SP)\n");
 		// set display register to point to start of activation record:

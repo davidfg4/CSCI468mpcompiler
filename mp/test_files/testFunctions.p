@@ -1,30 +1,30 @@
 program Main;
   var a, b, c: integer;
+  d : float;
 
-  {function Fred(x : integer): integer;
+  function Fred(var x : integer): float;
     var t : integer;
     begin
-	writeln('a:', x);
-        read(c);
-        Fred := c;
-      end; }
+        read(x);
+        Fred := x * a * b * c * d;
+      end;
 
-  function Proc(var proc1 : integer) : integer;
+  procedure Proc(var proc1 : integer; var proc2 : float);
   var procVar1 : integer; 
   begin
-    read(procVar1);
-    c := proc1;
-    writeln('proc1: ', proc1, ' procVar1: ', procVar1, ' c: ', c);
+    read(proc1);
+    read(d);
+    c := proc1 * d;
   end;
 
 
   begin
     read(a,b);
-    {c := Fred(a);}
-    {Proc(1);}
-    {Proc(a+b);}
-    Proc(a);
+    Proc(a, d);
+    writeln('a:', a);
     writeln('b:', b);
     writeln('c:', c);
+    writeln('d:', d);
+    writeln('Fred: ', -Fred(a), ' a:', a);
 end.
 

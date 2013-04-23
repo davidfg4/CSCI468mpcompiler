@@ -865,7 +865,7 @@ public class MPparser {
 		// rule 53: IfStatement --> "if" BooleanExpression "then" Statement OptionalElsePart
 		case MP_IF:
 			match(Token.TokenName.MP_IF);
-			booleanExpression(exprRec, Symbol.ParameterMode.NONE);	// TODO can if statement bool exprs be out-mode?
+			booleanExpression(exprRec, Symbol.ParameterMode.NONE);
 			analyzer.genIfTest(ifRec, exprRec);
 			match(Token.TokenName.MP_THEN);
 			statement();
