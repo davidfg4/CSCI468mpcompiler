@@ -459,14 +459,15 @@ public class SemanticAnalyzer {
 	 * leave the return value on top of the stack for functions
 	 * @param callee
 	 */
-	public void genCall(Symbol callee) {
+	public void genCall(Symbol callee, Symbol signRec) {
 		// call function
 		output.append("call " + callee.label1 + " ; call " + callee.lexeme + "\n");
 		// remove parameters and display register from stack
 		int popSize = callee.getParameterOffset() + Symbol.Type.INTEGER.size;
 		output.append("sub SP #" + popSize + " SP\n");
-		if(callee.negative)
-			output.append("NEGS");
+		if(signRec.negative) 
+			genNegOp(callee); // negate return value if function call preceded by '-'
+							  // NOTE: 'not' handled by factor() in parser
 	}
 	
 	/**
@@ -508,7 +509,6 @@ public class SemanticAnalyzer {
 	 */
 	public void genEndFuncOrProcDeclaration(Symbol funcProcRec) {
 		int activationRecordSize = funcProcRec.getActivationRecordSize();
-//		int returnValueAddr = -(activationRecordSize + Symbol.Type.INTEGER.size);
 		output.append("mov -" + activationRecordSize + "(SP) D" + funcProcRec.nestLevel + "\n");
 		if(funcProcRec.kind == Symbol.Kind.FUNCTION || funcProcRec.kind == Symbol.Kind.PROCEDURE) {
 			// func/proc teardown

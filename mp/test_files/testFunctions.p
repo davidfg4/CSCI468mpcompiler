@@ -1,6 +1,7 @@
 program Main;
   var a, b, c: integer;
   d : float;
+  e : boolean;
 
   function Fred(var x : integer): float;
     var t : integer;

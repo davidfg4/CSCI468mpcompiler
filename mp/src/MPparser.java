@@ -1079,7 +1079,7 @@ public class MPparser {
 				this.semanticError("Functions must be used in an expression");	// Assuming this is true
 			analyzer.genCallSetup(procSymbol);
 			optionalActualParameterList(procSymbol);
-			analyzer.genCall(procSymbol);
+			analyzer.genCall(procSymbol, new Symbol());	// sign not meaningful for procedures
 			break;
 		default:
 			syntaxErrorExpected("a procedure identifier");
@@ -1599,7 +1599,7 @@ public class MPparser {
 				factorRec.type = funSymbol.type;
 				analyzer.genCallSetup(funSymbol);
 				optionalActualParameterList(funSymbol);	// pass funSymbol for type checking parameters
-				analyzer.genCall(funSymbol);
+				analyzer.genCall(funSymbol, signRec);
 			}
 			break;
 		default:
