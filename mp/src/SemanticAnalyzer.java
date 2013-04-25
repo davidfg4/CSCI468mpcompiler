@@ -503,6 +503,7 @@ public class SemanticAnalyzer {
 		int returnValAddr = -(funcSymbol.getActivationRecordSize() + Symbol.Type.INTEGER.size * 2);
 		// move stack top (expression result) to spot reserved
 		output.append("mov -1(SP) " + returnValAddr + "(SP)\n");
+		output.append("sub SP #1 SP\n");
 	}
 	
 	/**
@@ -517,8 +518,6 @@ public class SemanticAnalyzer {
 		output.append("mov -" + activationRecordSize + "(SP) D" + funcProcRec.nestLevel + "\n");
 		if(funcProcRec.kind == Symbol.Kind.FUNCTION || funcProcRec.kind == Symbol.Kind.PROCEDURE) {
 			// func/proc teardown
-			if(funcProcRec.kind == Symbol.Kind.FUNCTION)
-				output.append("sub SP #" + Symbol.Type.INTEGER.size + " SP\n");
 			output.append("sub SP #" + funcProcRec.variableOffset + " SP\n");
 			output.append("ret ; -- end " + funcProcRec.lexeme + "\n");
 		}
