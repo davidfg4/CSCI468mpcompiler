@@ -144,16 +144,15 @@ public class SemanticAnalyzer {
 		else if(leftRec.type != Symbol.Type.BOOLEAN && leftRec.type != Symbol.Type.STRING) {
 			if(leftRec.type == rightRec.type) {
 				resultRec.type = relOp ? Symbol.Type.BOOLEAN : leftRec.type;
-				boolean floatDiv = opRec.lexeme.equals("/");
 				// Check for valid float division operator
 				if(leftRec.type == Symbol.Type.FLOAT) {
-					if(!floatDiv)
+					if(opRec.lexeme.equalsIgnoreCase("div"))
 						this.semanticError("Integer divison operator used on float type");
 					else
 						operation = operation + "f";
 				}
 				// Check for valid integer division operator
-				else if(leftRec.type == Symbol.Type.INTEGER && floatDiv)
+				else if(leftRec.type == Symbol.Type.INTEGER && opRec.lexeme.equals("/"))
 					this.semanticError("Float division operator used on integer type");
 				output.append(operation+"\n");
 			}
