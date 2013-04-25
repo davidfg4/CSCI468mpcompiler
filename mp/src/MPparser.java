@@ -1120,6 +1120,7 @@ public class MPparser {
 		case MP_TIMES:
 		case MP_AND:
 		case MP_DIV:
+		case MP_FP_DIV:
 		case MP_DO:
 		case MP_DOWNTO:
 		case MP_ELSE:
@@ -1460,6 +1461,7 @@ public class MPparser {
 		case MP_TIMES:
 		case MP_AND:
 		case MP_DIV:
+		case MP_FP_DIV:
 		case MP_MOD:
 			analyzer.checkForExprAsOutMode(parameterMode);
 			multiplyingOperator(operatorRec);
@@ -1509,6 +1511,9 @@ public class MPparser {
 		// rule 92: MultiplyingOperator --> "div"
 		case MP_DIV:
 			match(Token.TokenName.MP_DIV);
+			break;
+		case MP_FP_DIV:
+			match(Token.TokenName.MP_FP_DIV);
 			break;
 		// rule 93: MultiplyingOperator --> "mod"
 		case MP_MOD:

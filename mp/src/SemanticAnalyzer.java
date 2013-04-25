@@ -91,9 +91,12 @@ public class SemanticAnalyzer {
 			case "div":
 				operation = "divs";
 				break;
-//			case "/":
-//				operation = "divs";	// Not sure how this will work..
-//				break;
+			case "/":
+				operation = "divsf";
+				break;
+			case "mod":
+				operation = "mods";
+				break;
 			case "=":
 				operation = "cmpeqs";
 				relOp = true;
@@ -132,7 +135,7 @@ public class SemanticAnalyzer {
 			resultRec.type = leftRec.type;
 		}
 		// disallow arithmetic/compare operations on boolean and string types
-		else if(leftRec.type!= Symbol.Type.BOOLEAN && leftRec.type != Symbol.Type.STRING) {
+		else if(leftRec.type != Symbol.Type.BOOLEAN && leftRec.type != Symbol.Type.STRING) {
 			if(leftRec.type == rightRec.type) {
 				resultRec.type = relOp ? Symbol.Type.BOOLEAN : leftRec.type;
 				output.append(operation+"\n");
@@ -150,6 +153,10 @@ public class SemanticAnalyzer {
 				output.append("castsf\n");			// and cast this value to float
 				output.append("pop -2(SP)\n");		// then put it back where it was
 				output.append(operation + "f\n");
+			}
+			else if(leftRec.type == Symbol.Type.FLOAT && rightRec.type == Symbol.Type.FLOAT && opRec.lexeme.toLowerCase().equals("/")) {
+				resultRec.type = Symbol.Type.FLOAT;
+				output.append(operation + "\n");
 			}
 			else if(leftRec.type != rightRec.type) 
 				parser.semanticError("Incompatible types encountered for expression: " + leftRec.type + " " + opRec.lexeme + " " + rightRec.type);
