@@ -1101,6 +1101,9 @@ public class MPparser {
 			match(Token.TokenName.MP_RPAREN);
 			if(funProcSym.hasNextParameter())
 				semanticError("Too few actual parameters supplied for " + funProcSym.lexeme);
+			else 
+				funProcSym.resetParameterIterator();
+			
 			break;
 		// OptionalActualParameterList --> epsilon
 		case MP_COMMA:

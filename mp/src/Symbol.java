@@ -42,6 +42,7 @@ public class Symbol {
 	 * @return
 	 */
 	public boolean hasNextParameter() { return parameterIterator.hasNext(); }
+	public void resetParameterIterator() { parameterIterator = null; }
 	
 	/**
 	 * Used for type checking actual vs formal parameters and checking for too many actual
