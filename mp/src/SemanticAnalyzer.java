@@ -92,7 +92,7 @@ public class SemanticAnalyzer {
 				operation = "divs";
 				break;
 			case "/":
-				operation = "divsf";
+				operation = "divs";	// 'f' added below
 				break;
 			case "mod":
 				operation = "mods";
@@ -138,6 +138,17 @@ public class SemanticAnalyzer {
 		else if(leftRec.type != Symbol.Type.BOOLEAN && leftRec.type != Symbol.Type.STRING) {
 			if(leftRec.type == rightRec.type) {
 				resultRec.type = relOp ? Symbol.Type.BOOLEAN : leftRec.type;
+				boolean floatDiv = opRec.lexeme.equals("/");
+				// Check for valid float division operator
+				if(leftRec.type == Symbol.Type.FLOAT) {
+					if(!floatDiv)
+						parser.semanticError("Integer divison operator used on float type");
+					else
+						operation = operation + "f";
+				}
+				// Check for valid integer division operator
+				else if(leftRec.type == Symbol.Type.INTEGER && floatDiv)
+					parser.semanticError("Float division operator used on integer type");
 				output.append(operation+"\n");
 			}
 			// Stack top needs to be casted to float:
@@ -153,10 +164,6 @@ public class SemanticAnalyzer {
 				output.append("castsf\n");			// and cast this value to float
 				output.append("pop -2(SP)\n");		// then put it back where it was
 				output.append(operation + "f\n");
-			}
-			else if(leftRec.type == Symbol.Type.FLOAT && rightRec.type == Symbol.Type.FLOAT && opRec.lexeme.toLowerCase().equals("/")) {
-				resultRec.type = Symbol.Type.FLOAT;
-				output.append(operation + "\n");
 			}
 			else if(leftRec.type != rightRec.type) 
 				parser.semanticError("Incompatible types encountered for expression: " + leftRec.type + " " + opRec.lexeme + " " + rightRec.type);
