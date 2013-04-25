@@ -164,7 +164,12 @@ public class SemanticAnalyzer {
 	 */
 	public void genPushId(Symbol idRec, Symbol signRec, Symbol.ParameterMode mode) {
 		Symbol var = symbolTable.findSymbol(idRec.lexeme);
-		if(mode == Symbol.ParameterMode.REFERENCE) {
+		if(mode == Symbol.ParameterMode.REFERENCE && var.mode == Symbol.ParameterMode.REFERENCE) {
+			// if a reference mode formal parameter is used as an actual reference mode parameter 
+			// in a function call inside of a function, we have already calculated its address 
+			output.append("push " + var.offset + "(D" + var.nestLevel + ")\n");
+		}
+		else if(mode == Symbol.ParameterMode.REFERENCE) {
 			output.append("push D" + var.nestLevel + "\n");	
 			output.append("push #" + var.offset + "\n");
 			output.append("adds\n");	// calculate variable address
