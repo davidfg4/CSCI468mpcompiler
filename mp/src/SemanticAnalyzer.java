@@ -9,8 +9,7 @@ public class SemanticAnalyzer {
 	private int labelNumber = 0;
 	private MPparser parser;
 	private SymbolTable symbolTable;
-	// TODO at some point we should probably clear output if errors encountered; 
-	// shouldn't emit erroneous code but it seems it might be useful for testing for now
+	private boolean error = false;
 	
 	public SemanticAnalyzer(MPparser parser, SymbolTable table) {
 		this.parser = parser;
@@ -23,6 +22,8 @@ public class SemanticAnalyzer {
 	}
 	
 	public void writeMachineCodeToFile(String filename) {
+		if(error) 
+			output = new StringBuilder();
 		filename = filename.split("\\.")[0] + ".s";
 		File outputFile = new File(filename);
 		PrintWriter writer = null;
@@ -34,7 +35,12 @@ public class SemanticAnalyzer {
 		finally { 
 			if(writer != null)
 				writer.close();
-		}
+			}
+	}
+	
+	private void semanticError(String errorMsg) {
+		parser.semanticError(errorMsg);
+		error = true;
 	}
 	
 	/**
@@ -60,7 +66,7 @@ public class SemanticAnalyzer {
 			output.append("castsi\n");	// cast expression result to integer to assign to id
 		}
 		else if(id.type != expr.type)
-			parser.semanticError("Incompatible types encountered for assignement statement: " + id.type + " := " + expr.type);
+			this.semanticError("Incompatible types encountered for assignement statement: " + id.type + " := " + expr.type);
 		Symbol var = symbolTable.findSymbol(id.lexeme);
 		String dereference = var.mode == Symbol.ParameterMode.REFERENCE ? "@" : "";
 		// assuming parser will catch undeclared id's so no need to null check
@@ -142,13 +148,13 @@ public class SemanticAnalyzer {
 				// Check for valid float division operator
 				if(leftRec.type == Symbol.Type.FLOAT) {
 					if(!floatDiv)
-						parser.semanticError("Integer divison operator used on float type");
+						this.semanticError("Integer divison operator used on float type");
 					else
 						operation = operation + "f";
 				}
 				// Check for valid integer division operator
 				else if(leftRec.type == Symbol.Type.INTEGER && floatDiv)
-					parser.semanticError("Float division operator used on integer type");
+					this.semanticError("Float division operator used on integer type");
 				output.append(operation+"\n");
 			}
 			// Stack top needs to be casted to float:
@@ -166,10 +172,10 @@ public class SemanticAnalyzer {
 				output.append(operation + "f\n");
 			}
 			else if(leftRec.type != rightRec.type) 
-				parser.semanticError("Incompatible types encountered for expression: " + leftRec.type + " " + opRec.lexeme + " " + rightRec.type);
+				this.semanticError("Incompatible types encountered for expression: " + leftRec.type + " " + opRec.lexeme + " " + rightRec.type);
 		}
 		else 
-			parser.semanticError("Incompatible types encountered for expression: " + leftRec.type + " " + opRec.lexeme + " " + rightRec.type);
+			this.semanticError("Incompatible types encountered for expression: " + leftRec.type + " " + opRec.lexeme + " " + rightRec.type);
 	}
 	
 	/**
@@ -207,7 +213,7 @@ public class SemanticAnalyzer {
 			output.append(negOp);	// negate top of stack
 		}
 		else
-			parser.semanticError("'-' used for non-numeric expression type");
+			this.semanticError("'-' used for non-numeric expression type");
 	}
 	
 	/**
@@ -218,7 +224,7 @@ public class SemanticAnalyzer {
 		if(factorRec.type == Symbol.Type.BOOLEAN)
 			output.append("nots\n");
 		else
-			parser.semanticError("'not' used for non-boolean expression type");
+			this.semanticError("'not' used for non-boolean expression type");
 	}
 	
 	/**
@@ -233,7 +239,7 @@ public class SemanticAnalyzer {
 			output.append("push #" + literal + "\n");	// Push primitive literal
 		}
 		else
-			parser.semanticError("Literal values cannot be used as in-out parameters");
+			this.semanticError("Literal values cannot be used as in-out parameters");
 	}
 	
 	/**
@@ -247,7 +253,7 @@ public class SemanticAnalyzer {
 			output.append("push #" + bool + "\n");
 		}
 		else
-			parser.semanticError("Boolean literals cannot be used as in-out parameters");
+			this.semanticError("Boolean literals cannot be used as in-out parameters");
 	}
 	
 	/**
@@ -282,7 +288,7 @@ public class SemanticAnalyzer {
 				rdOp = "rds ";
 				break;
 			default:
-				parser.semanticError("Unsupported parameter type supplied for read");
+				this.semanticError("Unsupported parameter type supplied for read");
 				break;
 		}
 		String dereference = var.mode == Symbol.ParameterMode.REFERENCE ? "@" : "";
@@ -300,7 +306,7 @@ public class SemanticAnalyzer {
 		if(exprRec.type == Symbol.Type.BOOLEAN)
 			output.append("brfs " + ifRec.label1 + "\n");	
 		else
-			parser.semanticError("Expected boolean expression result, got " + exprRec.type);
+			this.semanticError("Expected boolean expression result, got " + exprRec.type);
 	}
 	
 	/**
@@ -349,7 +355,7 @@ public class SemanticAnalyzer {
 		if(exprRec.type == Symbol.Type.BOOLEAN)
 			output.append("brfs " + whileRec.label2 + "\n");	// skip while block if condition is false
 		else
-			parser.semanticError("Expected boolean expression result, got " + exprRec.type);
+			this.semanticError("Expected boolean expression result, got " + exprRec.type);
 	}
 	
 	/**
@@ -380,7 +386,7 @@ public class SemanticAnalyzer {
 		if(exprRec.type == Symbol.Type.BOOLEAN)
 			output.append("brfs " + repeatRec.label1 + "\n");	// repeat until condition is true
 		else
-			parser.semanticError("Expected boolean expression result, got " + exprRec.type);
+			this.semanticError("Expected boolean expression result, got " + exprRec.type);
 	}
 	
 	/**
@@ -404,7 +410,6 @@ public class SemanticAnalyzer {
 	 * @param finalRec
 	 */
 	public void genForTest(Symbol ctrlVarRec, Symbol forRec, Symbol finalRec) {
-		// TODO semantic/type checks; casting?
 		Symbol ctrlVar = symbolTable.findSymbol(ctrlVarRec.lexeme);
 		String cmpOp = forRec.lexeme.equalsIgnoreCase("to") ? "cmpges\n" : "cmples\n";
 		output.append("push " + ctrlVar.offset + "(D" + ctrlVar.nestLevel + ")\n");
@@ -419,7 +424,6 @@ public class SemanticAnalyzer {
 	 * @param forRec
 	 */
 	public void genEndFor(Symbol ctrlVarRec, Symbol forRec) {
-		// TODO semantic/type checks; casting?
 		Symbol ctrlVar = symbolTable.findSymbol(ctrlVarRec.lexeme);
 		output.append("push " + ctrlVar.offset + "(D" + ctrlVar.nestLevel + ")\n");
 		output.append("push #1\n");
@@ -430,6 +434,10 @@ public class SemanticAnalyzer {
 		output.append(forRec.label2 + ":\n");
 	}
 	
+	/**
+	 * Generates branch to program's 'begin' block
+	 * @param progRec
+	 */
 	public void genBranchMain(Symbol progRec) {
 		progRec.label1 = this.generateLabel();
 		output.append("br " + progRec.label1 + "\n");
@@ -443,12 +451,10 @@ public class SemanticAnalyzer {
 	 */
 	public void parameterCheck(Symbol formalParameter, Symbol actualParameter) {
 		if(formalParameter == null)
-			parser.semanticError("Too many actual parameters supplied for function");
+			this.semanticError("Too many actual parameters supplied for function");
 		else 
-			// TODO cast parameter value to float/int; make casts method to do this for this method and genAssn?
 			if(formalParameter.type != actualParameter.type) 
-				parser.semanticError("Actual parameter type does not match formal parameter type");
-		// "Expression result does not match expected type"
+				this.semanticError("Actual parameter type does not match formal parameter type");
 	}
 	
 	/**
@@ -458,7 +464,7 @@ public class SemanticAnalyzer {
 	 */
 	public void checkForExprAsOutMode(Symbol.ParameterMode mode) {
 		if(mode == Symbol.ParameterMode.REFERENCE)
-			parser.semanticError("Expressions cannot be supplied as out mode parameters");
+			this.semanticError("Expressions cannot be supplied as out mode parameters");
 	}
 	
 	/**
@@ -500,15 +506,16 @@ public class SemanticAnalyzer {
 		output.append(funcProcRec.label1 + ": ; " + funcProcRec.lexeme + "\n");	// drop label
 		if(funcProcRec.kind == Symbol.Kind.MAIN)
 			output.append("add SP #" + Symbol.Type.INTEGER.size + " SP\n");	// leave space for display register for main
-		int activationRecordSize = funcProcRec.getActivationRecordSize(); 	// leave space in AR for func/proc variables
-		output.append("add SP #" + funcProcRec.variableOffset + " SP\n");	// save old DN in AR
-		output.append("mov D" + funcProcRec.nestLevel + " -" + activationRecordSize + "(SP)\n");
+		int activationRecordSize = funcProcRec.getActivationRecordSize(); 	
+		output.append("add SP #" + funcProcRec.variableOffset + " SP\n");	// leave space in AR for func/proc variables
+		output.append("mov D" + funcProcRec.nestLevel + " -" + activationRecordSize + "(SP)\n"); // save old DN in AR
 		// set display register to point to start of activation record:
 		output.append("sub SP #" + activationRecordSize + " D" + funcProcRec.nestLevel + "\n"); 
 	}
 	
 	/**
-	 * Stores return value into space reserved for it in the stack
+	 * Stores return value into space reserved for it in the stack, pops
+	 * temporary return value (expression result) from stack.
 	 * @param funcRec
 	 */
 	public void genStoreReturnValue(Symbol funcRec) {
