@@ -24,7 +24,7 @@ public class SymbolTable {
 			s.nestLevel = currentNestLevel;			// record nesting level
 			s.offset = this.currentOffset;			// record offset
 			currentOffset += s.size;				// update current offset by symbol size
-			symbolTables.getFirst().put(s.lexeme, s);
+			symbolTables.getFirst().put(s.lexeme.toLowerCase(), s);
 			// If adding a parameter, also add it to the parameter list of the
 			// appropriate function or procedure.
 			if (s.kind == Symbol.Kind.FUNCTION || s.kind == Symbol.Kind.PROCEDURE)
@@ -39,7 +39,7 @@ public class SymbolTable {
 	
 	public Symbol findSymbol(String name) {
 		for (SubSymbolTable<String,Symbol> st : symbolTables) {
-			Symbol s = st.get(name);
+			Symbol s = st.get(name.toLowerCase());
 			if (s != null)
 				return s;
 		}
