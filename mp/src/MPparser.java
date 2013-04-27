@@ -1646,8 +1646,13 @@ public class MPparser {
 		// rule 1-1: VariableIdentifier --> Identifier
 		case MP_IDENTIFIER:
 			idRecord.lexeme = lookahead.getLexeme();
-			idRecord.type = symbolTable.findSymbol(lookahead.getLexeme()).type;
-			match(Token.TokenName.MP_IDENTIFIER);
+			Symbol actualParam = symbolTable.findSymbol(lookahead.getLexeme());
+			if(actualParam == null) 
+				semanticError("Undeclared identifier.");
+			else {
+				idRecord.type = actualParam.type;
+				match(Token.TokenName.MP_IDENTIFIER);
+			}
 			break;
 		default:
 			syntaxErrorExpected("a variable identifier");
