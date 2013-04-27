@@ -423,6 +423,10 @@ public class MPparser {
 		// rule 20: OptionalFormalParameterList --> epsilon
 		case MP_SCOLON:
 		case MP_COLON:
+		case MP_FLOAT:		// Remove these from float down if indeed 
+		case MP_INTEGER:	// colon is called for before Type
+		case MP_STRING:		// in func/param heading
+		case MP_BOOLEAN:
 			break;
 		default:
 			syntaxErrorExpected("parameter list in parentheses or start of function");
