@@ -810,6 +810,8 @@ public class MPparser {
 		case MP_FLOAT_LIT:
 		case MP_FIXED_LIT:
 		case MP_STRING_LIT:
+		case MP_TRUE:
+		case MP_FALSE:
 		case MP_NOT:
 			ordinalExpression(new Symbol(), Symbol.ParameterMode.NONE);
 			analyzer.genWriteStmt();	// value of param expression should be on stack top
