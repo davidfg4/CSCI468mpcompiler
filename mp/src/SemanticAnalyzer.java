@@ -148,7 +148,7 @@ public class SemanticAnalyzer {
 				booleanOp = true;
 				break;
 		}
-		if((relOp || booleanOp) && leftRec.type == Symbol.Type.BOOLEAN && rightRec.type == Symbol.Type.BOOLEAN) {
+		if(booleanOp && leftRec.type == Symbol.Type.BOOLEAN && rightRec.type == Symbol.Type.BOOLEAN) {
 			output.append(operation+"\n");
 			resultRec.type = leftRec.type;
 		}
