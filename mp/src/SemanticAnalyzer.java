@@ -82,7 +82,9 @@ public class SemanticAnalyzer {
 	 */
 	public void genArithmetic(Symbol leftRec, Symbol opRec, Symbol rightRec, Symbol resultRec) {
 		String operation = null;
-		boolean booleanOp = false, 
+		boolean integerDiv = false,
+				floatDiv = false,
+				booleanOp = false, 
 				relOp = false;		// if relational op, set resulting type to boolean
 		switch(opRec.lexeme.toLowerCase()) {
 			case "+":
@@ -95,16 +97,21 @@ public class SemanticAnalyzer {
 				operation = "muls";
 				break;
 			case "div":
+				integerDiv = true;
 				operation = "divs";
 				break;
 			case "/":
+				floatDiv = true;
 				operation = "divs";	// 'f' added below
 				break;
 			case "mod":
+				if(leftRec.type == Symbol.Type.FLOAT || rightRec.type == Symbol.Type.FLOAT)
+					semanticError("Modulo operator cannot be applied to float type");
 				operation = "mods";
 				break;
 			case "=":
-				operation = "cmpeqs";
+				operation = "cmpeqs";	
+				booleanOp = true;	// = allowed for booleans
 				relOp = true;
 				break;
 			case ">=":
@@ -125,18 +132,23 @@ public class SemanticAnalyzer {
 				break;
 			case "<>":
 				operation = "cmpnes";
+				booleanOp = true;	// <> allowed for booleans
 				relOp = true;
 				break;
 			case "and":
+				if(leftRec.type != Symbol.Type.BOOLEAN || rightRec.type != Symbol.Type.BOOLEAN)
+					semanticError("Logical operations not allowed on non-boolean types");
 				operation = "ands";
 				booleanOp = true;
 				break;
 			case "or":
+				if(leftRec.type != Symbol.Type.BOOLEAN || rightRec.type != Symbol.Type.BOOLEAN)
+					semanticError("Logical operations not allowed on non-boolean types");
 				operation = "ors";
 				booleanOp = true;
 				break;
 		}
-		if(booleanOp && leftRec.type == Symbol.Type.BOOLEAN && rightRec.type == Symbol.Type.BOOLEAN) {
+		if((relOp || booleanOp) && leftRec.type == Symbol.Type.BOOLEAN && rightRec.type == Symbol.Type.BOOLEAN) {
 			output.append(operation+"\n");
 			resultRec.type = leftRec.type;
 		}
@@ -144,37 +156,71 @@ public class SemanticAnalyzer {
 		else if(leftRec.type != Symbol.Type.BOOLEAN && leftRec.type != Symbol.Type.STRING) {
 			if(leftRec.type == rightRec.type) {
 				resultRec.type = relOp ? Symbol.Type.BOOLEAN : leftRec.type;
-				// Check for valid float division operator
+				// Check for integer division operator on floats
 				if(leftRec.type == Symbol.Type.FLOAT) {
-					if(opRec.lexeme.equalsIgnoreCase("div"))
-						this.semanticError("Integer divison operator used on float type");
-					else
-						operation = operation + "f";
+					if(integerDiv) {
+						// I'm not sure exactly what the semantics are for int division
+						// on floats, I assume you just truncate values, then divide
+						output.append("castsi\n");	// cast RHS to integer
+						genCastLeftHandSide(Symbol.Type.INTEGER);	// cast LHS to integer
+						resultRec.type = Symbol.Type.INTEGER;	// set expression result to integer
+					}
+					else // not integer div
+						operation = operation + "f";	// use float operation if LHS and RHS both float
 				}
-				// Check for valid integer division operator
-				else if(leftRec.type == Symbol.Type.INTEGER && opRec.lexeme.equals("/"))
-					this.semanticError("Float division operator used on integer type");
-				output.append(operation+"\n");
+				// Check for float division operator on integers
+				else if(leftRec.type == Symbol.Type.INTEGER && floatDiv) {
+					output.append("castsf\n");	// cast RHS to float
+					genCastLeftHandSide(Symbol.Type.FLOAT);	// cast LHS to float
+					resultRec.type = Symbol.Type.FLOAT;	// set expression result to float
+					operation = operation + "f";	// use float operation
+				}
+				output.append(operation + "\n");
 			}
 			// Stack top needs to be casted to float:
 			else if(leftRec.type == Symbol.Type.FLOAT && rightRec.type == Symbol.Type.INTEGER) {
 				resultRec.type = relOp ? Symbol.Type.BOOLEAN : Symbol.Type.FLOAT;
-				output.append("castsf\n"); 
-				output.append(operation + "f\n");
+				// unless integer div, then cast LHS to integer
+				if(integerDiv) {
+					genCastLeftHandSide(Symbol.Type.INTEGER); // cast LHS to integer
+					resultRec.type = Symbol.Type.INTEGER;	// set expression result to integer
+				}
+				else { // not integer div
+					output.append("castsf\n");	// cast RHS to float
+					operation = operation + "f";// use float operation
+				}
+				output.append(operation + "\n");
 			}
 			// Second in from top of stack needs to be casted to float:
 			else if(leftRec.type == Symbol.Type.INTEGER && rightRec.type == Symbol.Type.FLOAT) {
 				resultRec.type = relOp ? Symbol.Type.BOOLEAN : Symbol.Type.FLOAT;
-				output.append("push -2(SP)\n");		// Push value below value on top of stack (the int)
-				output.append("castsf\n");			// and cast this value to float
-				output.append("pop -2(SP)\n");		// then put it back where it was
-				output.append(operation + "f\n");
+				// unless integer div, then cast RHS to integer
+				if(integerDiv) {
+					output.append("castsi\n");	// cast RHS to integer
+					resultRec.type = Symbol.Type.INTEGER; // set expression result to integer
+				}
+				else { // not integer div
+					genCastLeftHandSide(Symbol.Type.FLOAT);	// cast LHS to float
+					operation = operation + "f";	// use float operation
+				}
+				output.append(operation + "\n");
 			}
 			else if(leftRec.type != rightRec.type) 
 				this.semanticError("Incompatible types encountered for expression: " + leftRec.type + " " + opRec.lexeme + " " + rightRec.type);
 		}
 		else 
 			this.semanticError("Incompatible types encountered for expression: " + leftRec.type + " " + opRec.lexeme + " " + rightRec.type);
+	}
+	
+	/**
+	 * Casts LHS of expression to specified type
+	 * @param type
+	 */
+	private void genCastLeftHandSide(Symbol.Type type) {
+		String castOp = type == Symbol.Type.FLOAT ? "castsf\n" : "castsi\n";
+		output.append("push -2(SP)\n");		// Push value below value on top of stack
+		output.append(castOp);				// cast value
+		output.append("pop -2(SP)\n");		// then put it back where it was
 	}
 	
 	/**
