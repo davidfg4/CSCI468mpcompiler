@@ -320,24 +320,28 @@ public class SemanticAnalyzer {
 	 * @param paramRec
 	 */
 	public void genReadStmt(Symbol paramRec) {
-		Symbol var = symbolTable.findSymbol(paramRec.lexeme);
-		String rdOp = null;
-		switch(paramRec.type) {
-			case INTEGER:
-				rdOp = "rd ";
-				break;
-			case FLOAT:
-				rdOp = "rdf ";
-				break;
-			case STRING:
-				rdOp = "rds ";
-				break;
-			default:
-				this.semanticError("Unsupported parameter type supplied for read");
-				break;
+		if(paramRec != null) {
+			Symbol var = symbolTable.findSymbol(paramRec.lexeme);
+			if(var != null) {
+				String rdOp = null;
+				switch(paramRec.type) {
+					case INTEGER:
+						rdOp = "rd ";
+						break;
+					case FLOAT:
+						rdOp = "rdf ";
+						break;
+					case STRING:
+						rdOp = "rds ";
+						break;
+					default:
+						this.semanticError("Unsupported parameter type supplied for read");
+						break;
+				}
+				String dereference = var.mode == Symbol.ParameterMode.REFERENCE ? "@" : "";
+				output.append(rdOp + dereference + var.offset + "(D" + var.nestLevel + ")\n");
+			}
 		}
-		String dereference = var.mode == Symbol.ParameterMode.REFERENCE ? "@" : "";
-		output.append(rdOp + dereference + var.offset + "(D" + var.nestLevel + ")\n");
 	}
 	
 	/**
