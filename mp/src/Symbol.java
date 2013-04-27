@@ -17,7 +17,7 @@ public class Symbol {
 
 	public String lexeme;
 	public Kind kind;
-	public Type type;
+	public Type type = Type.NONE;
 	public ParameterMode mode;	
 	public List<Symbol> parameters;
 	private Iterator<Symbol> parameterIterator = null;
