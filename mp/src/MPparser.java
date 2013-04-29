@@ -4,8 +4,8 @@ import java.util.LinkedList;
 
 public class MPparser {
 
-	private Token lookAhead;
-	private Token secondLookAhead;
+	private Token lookahead;
+	private Token secondLookahead;
 	private MPscanner scanner;
 	private SymbolTable symbolTable;
 	private SemanticAnalyzer analyzer;
@@ -15,10 +15,10 @@ public class MPparser {
 		scanner = new MPscanner();
 		symbolTable = new SymbolTable();
 		analyzer = new SemanticAnalyzer(this, symbolTable);
-		secondLookAhead = null;
+		secondLookahead = null;
 		scanner.openFile(filename);
-		lookAhead = scanner.getToken();
-		checkForScannerErrors(lookAhead);
+		lookahead = scanner.getToken();
+		checkForScannerErrors(lookahead);
 		systemGoal();
 		System.out.println("Successfully parsed! No scanner or parser errors found.");
 		analyzer.writeMachineCodeToFile(filename);
@@ -34,24 +34,24 @@ public class MPparser {
 	}
 
 	private void match(Token.TokenName token) {
-		if (lookAhead.getToken() != token)
+		if (lookahead.getToken() != token)
 			syntaxErrorExpected(Token.getReverseReservedWord(token));
-		if (secondLookAhead != null) {
-			lookAhead = secondLookAhead;
-			secondLookAhead = null;
+		if (secondLookahead != null) {
+			lookahead = secondLookahead;
+			secondLookahead = null;
 		} else {
-			lookAhead = scanner.getToken();
-			checkForScannerErrors(lookAhead);
+			lookahead = scanner.getToken();
+			checkForScannerErrors(lookahead);
 		}
 	}
 
 	private Token getSecondLookahead()
 	{
-		if (secondLookAhead != null)
-			return secondLookAhead;
-		secondLookAhead = scanner.getToken();
-		checkForScannerErrors(secondLookAhead);
-		return secondLookAhead;
+		if (secondLookahead != null)
+			return secondLookahead;
+		secondLookahead = scanner.getToken();
+		checkForScannerErrors(secondLookahead);
+		return secondLookahead;
 	}
 
 	private void checkForScannerErrors(Token t) {
@@ -67,8 +67,8 @@ public class MPparser {
 	}
 
 	private void syntaxErrorExpected(String expected) {
-		System.err.println(scanner.getError(lookAhead, "Syntax Error: Expected " +
-				expected + ", got '" + lookAhead.getLexeme() + "' instead"));
+		System.err.println(scanner.getError(lookahead, "Syntax Error: Expected " +
+				expected + ", got '" + lookahead.getLexeme() + "' instead"));
 		System.exit(1);
 	}
 	
@@ -79,7 +79,7 @@ public class MPparser {
 	}
 	
 	public void semanticError(String error) {
-		System.err.println(scanner.getError(lookAhead, "Semantic Error: ") + error);
+		System.err.println(scanner.getError(lookahead, "Semantic Error: ") + error);
 	}
 
 	/***************************************************************************
@@ -92,7 +92,7 @@ public class MPparser {
 	 * Post: SystemGoal has been expanded
 	 */
 	private void systemGoal() {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 1: SystemGoal --> Program eof
 		case MP_PROGRAM:
 			program();
@@ -109,7 +109,7 @@ public class MPparser {
 	 * Post: Program has been expanded
 	 */
 	private void program() {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 2: Program --> ProgramHeading ";" Block "."
 		case MP_PROGRAM:
 			String programName = programHeading();
@@ -136,7 +136,7 @@ public class MPparser {
 	 */
 	private String programHeading() {
 		String programName = "";
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 3: ProgramHeading --> "program" ProgramIdentifier
 		case MP_PROGRAM:
 			match(Token.TokenName.MP_PROGRAM);
@@ -154,7 +154,7 @@ public class MPparser {
 	 * Post: Block has been expanded
 	 */
 	private void block(Symbol funcProcRec) {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 4: Block --> VariableDeclarationPart ProcedureAndFunctionDeclarationPart StatementPart
 		case MP_BEGIN:
 		case MP_FUNCTION:
@@ -175,7 +175,7 @@ public class MPparser {
 	 * Post: VariableDeclarationPart is expanded
 	 */
 	private void variableDeclarationPart(Symbol funcProcRec) {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 5: VariableDeclarationPart --> "var" VariableDeclaration ";" VariableDeclarationTail
 		case MP_VAR:
 			match(Token.TokenName.MP_VAR);
@@ -199,7 +199,7 @@ public class MPparser {
 	 * Post: VariableDeclarationTail is expanded
 	 */
 	private void variableDeclarationTail(Symbol funcProcRec) {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 7: VariableDeclarationTail --> VariableDeclaration ";" VariableDeclarationTail
 		case MP_IDENTIFIER:
 			variableDeclaration(funcProcRec);
@@ -222,7 +222,7 @@ public class MPparser {
 	 * Post: VariableDeclaration is expanded
 	 */
 	private void variableDeclaration(Symbol funcProcRec) {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 9: VariableDeclaration --> IdentifierList ":" Type
 		case MP_IDENTIFIER:
 			funcProcRec.variableOffset += matchIdentifiersColonType(Symbol.Kind.VARIABLE, Symbol.ParameterMode.NONE);
@@ -239,7 +239,7 @@ public class MPparser {
 	 */
 	private Symbol.Type type() {
 		Symbol.Type type = null;
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 10: Type --> "Integer"
 		case MP_INTEGER:
 			match(Token.TokenName.MP_INTEGER);
@@ -272,7 +272,7 @@ public class MPparser {
 	 * Post: ProcedureAndFunctionDeclarationPart is expanded
 	 */
 	private void procedureAndFunctionDeclarationPart() {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 12: ProcedureAndFunctionDeclarationPart --> ProcedureDeclaration ProcedureAndFunctionDeclarationPart 
 		case MP_PROCEDURE:
 			procedureDeclaration();
@@ -297,7 +297,7 @@ public class MPparser {
 	 */
 	private void procedureDeclaration() {
 		Symbol procSym = new Symbol();
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 15: ProcedureDeclaration --> ProcedureHeading ";" Block ";" 
 		case MP_PROCEDURE:
 			// new Symbol Table created within here:
@@ -321,7 +321,7 @@ public class MPparser {
 	 */
 	private void functionDeclaration() {
 		Symbol funcSym = new Symbol();
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 16: FunctionDeclaration --> FunctionHeading ";" Block ";"
 		case MP_FUNCTION:
 			// new Symbol Table created within here:
@@ -346,11 +346,11 @@ public class MPparser {
 	 */
 	private void procedureHeading(Symbol procSymbol) {
 		String procedureName = "";
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 17: ProcedureHeading --> "procedure" ProcedureIdentifier OptionalFormalParameterList
 		case MP_PROCEDURE:
 			match(Token.TokenName.MP_PROCEDURE);
-			procedureName = lookAhead.getLexeme();
+			procedureName = lookahead.getLexeme();
 			try {
 				procSymbol.lexeme = procedureName;
 				procSymbol.kind = Symbol.Kind.PROCEDURE;
@@ -379,11 +379,11 @@ public class MPparser {
 	private void functionHeading(Symbol functionSymbol) {
 		String functionName = "";
 		Symbol.Type type = null;
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 18:FunctionHeading --> "function" FunctionIdentifier OptionalFormalParameterList Type
 		case MP_FUNCTION:
 			match(Token.TokenName.MP_FUNCTION);
-			functionName = lookAhead.getLexeme();
+			functionName = lookahead.getLexeme();
 			try {
 				functionSymbol.lexeme = functionName;
 				functionSymbol.kind = Symbol.Kind.FUNCTION;
@@ -412,7 +412,7 @@ public class MPparser {
 	 * Post: OptionalFormatlParameterList is expanded
 	 */
 	private void optionalFormalParameterList() {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 19: OptionalFormalParameterList --> "(" FormalParameterSection FormalParameterSectionTail ")"
 		case MP_LPAREN:
 			match(Token.TokenName.MP_LPAREN);
@@ -439,7 +439,7 @@ public class MPparser {
 	 * Post: FormatParameterSectionTail
 	 */
 	private void formalParameterSectionTail() {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 21: FormalParameterSectionTail --> ";" FormalParameterSection FormalParameterSectionTail
 		case MP_SCOLON:
 			match(Token.TokenName.MP_SCOLON);
@@ -460,7 +460,7 @@ public class MPparser {
 	 * Post: FormalParameterSection is expanded
 	 */
 	private void formalParameterSection() {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 23: FormalParameterSection --> ValueParameterSection
 		case MP_IDENTIFIER:
 			valueParameterSection();
@@ -480,7 +480,7 @@ public class MPparser {
 	 * Post: ValueParameterSection is expanded
 	 */
 	private void valueParameterSection() {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 25: ValueParameterSection --> IdentifierList ":" Type
 		case MP_IDENTIFIER:
 			matchIdentifiersColonType(Symbol.Kind.PARAMETER, Symbol.ParameterMode.COPY);
@@ -496,7 +496,7 @@ public class MPparser {
 	 * Post: VariableParameterSection is expanded
 	 */
 	private void variableParameterSection() {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 26: VariableParameterSection --> "var" IdentifierList ":" Type
 		case MP_VAR:
 			match(Token.TokenName.MP_VAR);
@@ -533,7 +533,7 @@ public class MPparser {
 	 * Post: StatementPart is expanded
 	 */
 	private void statementPart(Symbol funcProcRec) {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 27: StatementPart --> CompoundStatement
 		case MP_BEGIN:
 			analyzer.genBeginFuncOrProcDeclaration(funcProcRec);	// Set up second part of activation record
@@ -551,7 +551,7 @@ public class MPparser {
 	 * Post: CompoundStatement is expanded
 	 */
 	private void compoundStatement() {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 28: CompoundStatement --> "begin" StatementSequence "end"
 		case MP_BEGIN:
 			match(Token.TokenName.MP_BEGIN);
@@ -569,7 +569,7 @@ public class MPparser {
 	 * Post: StatementSequence is expanded
 	 */
 	private void statementSequence() {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 29: StatementSequence --> Statement StatementTail
 		case MP_SCOLON:
 		case MP_BEGIN:
@@ -598,7 +598,7 @@ public class MPparser {
 	 * Post: StatementTail is expanded
 	 */
 	private void statementTail() {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rules 30: StatementTail --> ";" Statement StatementTail
 		case MP_SCOLON:
 			match(Token.TokenName.MP_SCOLON);
@@ -620,7 +620,7 @@ public class MPparser {
 	 * Post: Statement is expanded
 	 */
 	private void statement() {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 32: Statement --> EmptyStatement
 		case MP_SCOLON:
 		case MP_ELSE:
@@ -678,7 +678,7 @@ public class MPparser {
 	 * Post: EmptyStatement is expanded
 	 */
 	private void emptyStatement() {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// EmptyStatement --> epsilon
 		case MP_SCOLON:
 		case MP_ELSE:
@@ -696,7 +696,7 @@ public class MPparser {
 	 * Post: ReadStatement is expanded
 	 */
 	private void readStatement() {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 43: ReadStatement --> "read" "(" ReadParameter ReadParameterTail ")"
 		case MP_READ:
 			match(Token.TokenName.MP_READ);
@@ -716,7 +716,7 @@ public class MPparser {
 	 * Post: ReadParameterTail is expanded
 	 */
 	private void readParameterTail() {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 44: ReadParameterTail --> "," ReadParameter ReadParameterTail
 		case MP_COMMA:
 			match(Token.TokenName.MP_COMMA);
@@ -738,7 +738,7 @@ public class MPparser {
 	 */
 	private void readParameter() {
 		Symbol readParamRec = new Symbol();
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 46: ReadParameter --> VariableIdentifier
 		case MP_IDENTIFIER:
 			variableIdentifier(readParamRec);
@@ -755,12 +755,12 @@ public class MPparser {
 	 * Post: WriteStatement is expanded
 	 */
 	private void writeStatement() {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 47: WriteStatement --> "write" "(" WriteParameter WriteParameterTail ")"
 		// rule 111: WriteStatement --> "writeln" "(" WriteParameter WriteParameterTail ")"
 		case MP_WRITE:
 		case MP_WRITELN:
-			boolean isWriteLn = lookAhead.getToken() == Token.TokenName.MP_WRITELN;
+			boolean isWriteLn = lookahead.getToken() == Token.TokenName.MP_WRITELN;
 			if(isWriteLn)
 				match(Token.TokenName.MP_WRITELN);
 			else
@@ -783,7 +783,7 @@ public class MPparser {
 	 * Post: WriteParameterTail is expanded
 	 */
 	private void writeParameterTail() {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 48: WriteParameterTail --> "," WriteParameter WriteParameterTail
 		case MP_COMMA:
 			match(Token.TokenName.MP_COMMA);
@@ -804,7 +804,7 @@ public class MPparser {
 	 * Post: WriteParameter is expanded
 	 */
 	private void writeParameter() {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 50: WriteParameter --> OrdinalExpression
 		case MP_LPAREN:
 		case MP_PLUS:
@@ -833,11 +833,11 @@ public class MPparser {
 	private void assignmentStatement() {
 		Symbol idRecord = new Symbol();
 		Symbol exprRecord = new Symbol();
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 51: AssignmentStatement --> VariableIdentifier ":=" Expression
 		// rule 52: AssignmentStatement --> FunctionIdentifier ":=" Expression
 		case MP_IDENTIFIER:
-			Symbol assignedVar = symbolTable.findSymbol(lookAhead.getLexeme());
+			Symbol assignedVar = symbolTable.findSymbol(lookahead.getLexeme());
 			if (assignedVar == null) {
 				semanticError("Undeclared identifier.");
 			} else if (assignedVar.kind == Symbol.Kind.VARIABLE  || assignedVar.kind == Symbol.Kind.PARAMETER) {
@@ -867,7 +867,7 @@ public class MPparser {
 	private void ifStatement() {
 		Symbol exprRec = new Symbol();
 		Symbol ifRec = new Symbol();
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 53: IfStatement --> "if" BooleanExpression "then" Statement OptionalElsePart
 		case MP_IF:
 			match(Token.TokenName.MP_IF);
@@ -885,7 +885,7 @@ public class MPparser {
 	}
 
 	private void optionalElsePart(Symbol optElseRec) {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// It is possible for "case MP_ELSE" to be epsilon, but for simplicity,
 		// and to always match the closest if statement, 'else' always matches here.
 		// rule 54: OptionalElsePart --> "else" Statement
@@ -913,7 +913,7 @@ public class MPparser {
 	private void repeatStatement() {
 		Symbol exprRec = new Symbol();
 		Symbol repeatRec = new Symbol();
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 56: RepeatStatement --> "repeat" StatementSequence "until" BooleanExpression
 		case MP_REPEAT:
 			match(Token.TokenName.MP_REPEAT);
@@ -936,7 +936,7 @@ public class MPparser {
 	private void whileStatement() {
 		Symbol exprRec = new Symbol();
 		Symbol whileRec = new Symbol();
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 57: WhileStatement --> "while" BooleanExpression "do" Statement
 		case MP_WHILE:
 			match(Token.TokenName.MP_WHILE);
@@ -962,7 +962,7 @@ public class MPparser {
 		Symbol initialRec = new Symbol();
 		Symbol forRec = new Symbol();		// could use boolean, but this is more clear
 		Symbol finalRec = new Symbol();
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 58: ForStatement --> "for" ControlVariable ":=" InitialValue StepValue FinalValue "do" Statement
 		case MP_FOR:
 			match(Token.TokenName.MP_FOR);
@@ -988,7 +988,7 @@ public class MPparser {
 	 * Post: ControlVariable is expanded
 	 */
 	private void controlVariable(Symbol idRec) {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 59: ControlVariable --> VariableIdentifier
 		case MP_IDENTIFIER:
 			variableIdentifier(idRec);
@@ -1004,7 +1004,7 @@ public class MPparser {
 	 * Post: InitialValue is expanded
 	 */
 	private void initialValue(Symbol exprRec) {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 60: InitialValue --> OrdinalExpression
 		case MP_LPAREN:
 		case MP_PLUS:
@@ -1029,8 +1029,8 @@ public class MPparser {
 	 * Post: StepValue is expanded
 	 */
 	private void stepValue(Symbol stepRec) {
-		stepRec.lexeme = lookAhead.getLexeme();
-		switch (lookAhead.getToken()) {
+		stepRec.lexeme = lookahead.getLexeme();
+		switch (lookahead.getToken()) {
 		// rule 61: StepValue --> "to"
 		case MP_TO:
 			match(Token.TokenName.MP_TO);
@@ -1050,7 +1050,7 @@ public class MPparser {
 	 * Post: FinalValue is expanded
 	 */
 	private void finalValue(Symbol exprRec) {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 63: FinalValue --> OrdinalExpression
 		case MP_LPAREN:
 		case MP_PLUS:
@@ -1075,7 +1075,7 @@ public class MPparser {
 	 * Post: ProcedureStatement is expanded
 	 */
 	private void procedureStatement() {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 64: ProcedureStatement --> ProcedureIdentifier OptionalActualParameterList
 		case MP_IDENTIFIER:
 			Symbol procIdRec = new Symbol();
@@ -1098,7 +1098,7 @@ public class MPparser {
 	 * Post: OptionalActualParameterList is expanded
 	 */
 	private void optionalActualParameterList(Symbol funProcSym) {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 65: OptionalActualParameterList --> "(" ActualParameter ActualParameterTail ")"
 		case MP_LPAREN:
 			match(Token.TokenName.MP_LPAREN);
@@ -1148,7 +1148,7 @@ public class MPparser {
 	 * Post: ActualParameterTail is expanded
 	 */
 	private void actualParameterTail(Symbol funProcRec) {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 67: ActualParameterTail --> "," ActualParameter ActualParameterTail
 		case MP_COMMA:
 			match(Token.TokenName.MP_COMMA);
@@ -1169,7 +1169,7 @@ public class MPparser {
 	 * Post: ActualParameter is expanded
 	 */
 	private void actualParameter(Symbol funProcRec) {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 69: ActualParameter --> OrdinalExpression
 		case MP_LPAREN:
 		case MP_PLUS:
@@ -1199,7 +1199,7 @@ public class MPparser {
 	 * Post: Expression is expanded
 	 */
 	private void expression(Symbol exprRec, Symbol.ParameterMode parameterMode) {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 70: Expression --> SimpleExpression OptionalRelationalPart
 		case MP_LPAREN:
 		case MP_PLUS:
@@ -1229,7 +1229,7 @@ public class MPparser {
 		Symbol relOp = new Symbol();
 		Symbol rightSideRec = new Symbol();
 		Symbol resultRec = new Symbol();
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 71: OptionalRelationalPart --> RelationalOperator SimpleExpression
 		case MP_EQUAL:
 		case MP_LTHAN:
@@ -1266,8 +1266,8 @@ public class MPparser {
 	 * Post: RelationalOperator is expanded
 	 */
 	private void relationalOperator(Symbol relOp) {
-		relOp.lexeme = lookAhead.getLexeme();
-		switch (lookAhead.getToken()) {
+		relOp.lexeme = lookahead.getLexeme();
+		switch (lookahead.getToken()) {
 		// rule 73: RelationalOperator --> "="
 		case MP_EQUAL:
 			match(Token.TokenName.MP_EQUAL);
@@ -1306,7 +1306,7 @@ public class MPparser {
 		Symbol termRec = new Symbol();
 		Symbol termTailRec = new Symbol();
 		Symbol signRec = new Symbol();
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 79: SimpleExpression --> OptionalSign Term TermTail
 		case MP_LPAREN:
 		case MP_PLUS:
@@ -1339,7 +1339,7 @@ public class MPparser {
 		Symbol rightSideRec = new Symbol();
 		Symbol operatorRec = new Symbol();
 		Symbol resultRec = new Symbol();	
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 80: TermTail --> AddingOperator Term TermTail
 		case MP_PLUS:
 		case MP_MINUS:
@@ -1380,7 +1380,7 @@ public class MPparser {
 	 * Post: OptionalSign is expanded
 	 */
 	private void optionalSign(Symbol signRec) {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 82: OptionalSign --> "+"
 		case MP_PLUS:
 			match(Token.TokenName.MP_PLUS);
@@ -1409,8 +1409,8 @@ public class MPparser {
 	 * Post: AddingOperator is expanded
 	 */
 	private void addingOperator(Symbol operatorRec) {
-		operatorRec.lexeme = lookAhead.getLexeme();	// return operator type
-		switch (lookAhead.getToken()) {
+		operatorRec.lexeme = lookahead.getLexeme();	// return operator type
+		switch (lookahead.getToken()) {
 		// rule 85: AddingOperator --> "+"
 		case MP_PLUS:
 			match(Token.TokenName.MP_PLUS);
@@ -1434,7 +1434,7 @@ public class MPparser {
 	 * Post: Term is expanded
 	 */
 	private void term(Symbol termRec, Symbol signRec, Symbol.ParameterMode parameterMode) {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 88: Term --> Factor FactorTail
 		case MP_LPAREN:
 		case MP_IDENTIFIER:
@@ -1462,7 +1462,7 @@ public class MPparser {
 		Symbol rightSideRec = new Symbol();
 		Symbol operatorRec = new Symbol();
 		Symbol resultRec = new Symbol();
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 89: FactorTail --> MultiplyingOperator Factor FactorTail
 		case MP_TIMES:
 		case MP_AND:
@@ -1508,8 +1508,8 @@ public class MPparser {
 	 * Post: MultiplnyingOperator is expanded
 	 */
 	private void multiplyingOperator(Symbol operatorRec) {
-		operatorRec.lexeme = lookAhead.getLexeme();	// return operator type
-		switch (lookAhead.getToken()) {
+		operatorRec.lexeme = lookahead.getLexeme();	// return operator type
+		switch (lookahead.getToken()) {
 		// rule 91: MultiplyingOperator --> "*"
 		case MP_TIMES:
 			match(Token.TokenName.MP_TIMES);
@@ -1540,46 +1540,46 @@ public class MPparser {
 	 * Post: Factor is expanded
 	 */
 	private void factor(Symbol factorRec, Symbol signRec, Symbol.ParameterMode parameterMode) {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// Factor --> UnsignedInteger
 		case MP_INTEGER_LIT:
 			factorRec.type = Symbol.Type.INTEGER;
-			factorRec.lexeme = lookAhead.getLexeme();
+			factorRec.lexeme = lookahead.getLexeme();
 			analyzer.genPushLiteral(factorRec, signRec, parameterMode);
 			match(Token.TokenName.MP_INTEGER_LIT);
 			break;
 		// rule 113: Factor --> UnsignedFloat
 		case MP_FLOAT_LIT:
 			factorRec.type = Symbol.Type.FLOAT;
-			factorRec.lexeme = lookAhead.getLexeme();
+			factorRec.lexeme = lookahead.getLexeme();
 			analyzer.genPushLiteral(factorRec, signRec, parameterMode);
 			match(Token.TokenName.MP_FLOAT_LIT);
 			break;
 		// rule 113: Factor --> UnsignedFloat
 		case MP_FIXED_LIT: 
 			factorRec.type = Symbol.Type.FLOAT;
-			factorRec.lexeme = lookAhead.getLexeme();
+			factorRec.lexeme = lookahead.getLexeme();
 			analyzer.genPushLiteral(factorRec, signRec, parameterMode);
 			match(Token.TokenName.MP_FIXED_LIT);
 			break;
 		// rule 114: Factor --> StringLiteral
 		case MP_STRING_LIT:
 			factorRec.type = Symbol.Type.STRING;
-			factorRec.lexeme = lookAhead.getLexeme();
+			factorRec.lexeme = lookahead.getLexeme();
 			analyzer.genPushLiteral(factorRec, new Symbol(), parameterMode);
 			match(Token.TokenName.MP_STRING_LIT);
 			break;
 		// rule 115: Factor --> "True"
 		case MP_TRUE:
 			factorRec.type = Symbol.Type.BOOLEAN;
-			factorRec.lexeme = lookAhead.getLexeme();
+			factorRec.lexeme = lookahead.getLexeme();
 			analyzer.genPushBoolLit(factorRec, parameterMode);
 			match(Token.TokenName.MP_TRUE);
 			break;
 		// rule 116: Factor --> "False"
 		case MP_FALSE:
 			factorRec.type = Symbol.Type.BOOLEAN;
-			factorRec.lexeme = lookAhead.getLexeme();
+			factorRec.lexeme = lookahead.getLexeme();
 			analyzer.genPushBoolLit(factorRec, parameterMode);
 			match(Token.TokenName.MP_FALSE);
 			break;
@@ -1598,7 +1598,7 @@ public class MPparser {
 				analyzer.genNegOp(factorRec);
 			break;
 		case MP_IDENTIFIER:
-			Symbol assignedVar = symbolTable.findSymbol(lookAhead.getLexeme());
+			Symbol assignedVar = symbolTable.findSymbol(lookahead.getLexeme());
 			if (assignedVar == null) {
 				semanticError("Undeclared identifier.");
 			} else if (assignedVar.kind == Symbol.Kind.VARIABLE || assignedVar.kind == Symbol.Kind.PARAMETER) {
@@ -1628,10 +1628,10 @@ public class MPparser {
 	 */
 	private String programIdentifier() {
 		String programName = "";
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 100: ProgramIdentifier --> Identifier
 		case MP_IDENTIFIER:
-			programName = lookAhead.getLexeme();
+			programName = lookahead.getLexeme();
 			match(Token.TokenName.MP_IDENTIFIER);
 			break;
 		default:
@@ -1646,11 +1646,11 @@ public class MPparser {
 	 * Post: VariableIdentifier is expanded
 	 */
 	private void variableIdentifier(Symbol idRecord) {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 1-1: VariableIdentifier --> Identifier
 		case MP_IDENTIFIER:
-			idRecord.lexeme = lookAhead.getLexeme();
-			Symbol actualParam = symbolTable.findSymbol(lookAhead.getLexeme());
+			idRecord.lexeme = lookahead.getLexeme();
+			Symbol actualParam = symbolTable.findSymbol(lookahead.getLexeme());
 			if(actualParam == null) 
 				semanticError("Undeclared identifier.");
 			else {
@@ -1669,11 +1669,11 @@ public class MPparser {
 	 * Post: ProcedureIdentifier is expanded
 	 */
 	private void procedureIdentifier(Symbol procIdRec) {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 102: ProcedureIdentifier --> Identifier
 		case MP_IDENTIFIER:
 			if(procIdRec != null) {
-				procIdRec.lexeme = lookAhead.getLexeme();
+				procIdRec.lexeme = lookahead.getLexeme();
 				procIdRec.type = Symbol.Type.NONE;
 			}
 			match(Token.TokenName.MP_IDENTIFIER);
@@ -1689,12 +1689,12 @@ public class MPparser {
 	 * Post: FunctionIdentifier is expanded
 	 */
 	private void functionIdentifier(Symbol funIdRecord) {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 103: FunctionIdentifier --> Identifier
 		case MP_IDENTIFIER:
 			if(funIdRecord != null) {
-				funIdRecord.lexeme = lookAhead.getLexeme();
-				funIdRecord.type = symbolTable.findSymbol(lookAhead.getLexeme()).type;
+				funIdRecord.lexeme = lookahead.getLexeme();
+				funIdRecord.type = symbolTable.findSymbol(lookahead.getLexeme()).type;
 			}
 			match(Token.TokenName.MP_IDENTIFIER);
 			break;
@@ -1709,7 +1709,7 @@ public class MPparser {
 	 * Post: BooleanExpression is expanded
 	 */
 	private void booleanExpression(Symbol exprRec, Symbol.ParameterMode parameterMode) {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 104: BooleanExpression --> Expression
 		case MP_LPAREN:
 		case MP_PLUS:
@@ -1734,7 +1734,7 @@ public class MPparser {
 	 * Post: OrdinalExpression is expanded
 	 */
 	private void ordinalExpression(Symbol exprRec, Symbol.ParameterMode parameterMode) {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 105: OrdinalExpression --> Expression
 		case MP_LPAREN:
 		case MP_PLUS:
@@ -1761,10 +1761,10 @@ public class MPparser {
 	 */
 	private Collection<String> identifierList() {
 		Collection<String> identifiers = new LinkedList<String>();
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 106: IdentifierList --> Identifier IdentifierTail
 		case MP_IDENTIFIER:
-			identifiers.add(lookAhead.getLexeme());
+			identifiers.add(lookahead.getLexeme());
 			match(Token.TokenName.MP_IDENTIFIER);
 			identifierTail(identifiers);
 			break;
@@ -1780,11 +1780,11 @@ public class MPparser {
 	 * Post: IdentifierTail is expanded
 	 */
 	private void identifierTail(Collection<String> identifiers) {
-		switch (lookAhead.getToken()) {
+		switch (lookahead.getToken()) {
 		// rule 107: IdentifierTail --> Identifier
 		case MP_COMMA:
 			match(Token.TokenName.MP_COMMA);
-			identifiers.add(lookAhead.getLexeme());
+			identifiers.add(lookahead.getLexeme());
 			match(Token.TokenName.MP_IDENTIFIER);
 			identifierTail(identifiers);
 			break;
