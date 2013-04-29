@@ -398,6 +398,7 @@ public class MPparser {
 			functionIdentifier(null);
 			optionalFormalParameterList();
 			//match(Token.TokenName.MP_COLON); // Grammar doesn't include a colon FunctionHeading
+			match(Token.TokenName.MP_COLON);
 			type = type();
 			functionSymbol.type = type;
 			break;
