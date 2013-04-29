@@ -6,7 +6,6 @@ import java.io.PrintWriter;
 public class SemanticAnalyzer {
 	
 	private StringBuilder output = new StringBuilder();
-	private int labelNumber = 0;
 	private MPparser parser;
 	private SymbolTable symbolTable;
 	private boolean error = false;
@@ -16,10 +15,6 @@ public class SemanticAnalyzer {
 		this.symbolTable = table;
 	}
 	
-	
-	public String generateLabel() {
-		return "L" + labelNumber++;
-	}
 	
 	public void writeMachineCodeToFile(String filename) {
 		if(error) 
@@ -349,8 +344,8 @@ public class SemanticAnalyzer {
 	 * @param ifRec
 	 */
 	public void genIfTest(Symbol ifRec, Symbol exprRec) {
-		ifRec.label1 = this.generateLabel();
-		ifRec.label2 = this.generateLabel();
+		ifRec.label1 = LabelGenerator.getLabelGenerator().generateLabel();
+		ifRec.label2 = LabelGenerator.getLabelGenerator().generateLabel();
 		// branch past "then" statements if value on stack is false
 		if(exprRec.type == Symbol.Type.BOOLEAN)
 			output.append("brfs " + ifRec.label1 + "\n");	
@@ -390,8 +385,8 @@ public class SemanticAnalyzer {
 	 * @param whileRec
 	 */
 	public void genBeginWhile(Symbol whileRec) {
-		whileRec.label1 = this.generateLabel();
-		whileRec.label2 = this.generateLabel();
+		whileRec.label1 = LabelGenerator.getLabelGenerator().generateLabel();
+		whileRec.label2 = LabelGenerator.getLabelGenerator().generateLabel();
 		output.append(whileRec.label1 + ":\n");
 	}
 	
@@ -422,7 +417,7 @@ public class SemanticAnalyzer {
 	 * @param repeatRec
 	 */
 	public void genBeginRepeat(Symbol repeatRec) {
-		repeatRec.label1 = this.generateLabel();
+		repeatRec.label1 = LabelGenerator.getLabelGenerator().generateLabel();
 		output.append(repeatRec.label1 + ":\n");
 	}
 	
@@ -445,8 +440,8 @@ public class SemanticAnalyzer {
 	 * @param forRec
 	 */
 	public void genBeginFor(Symbol ctrlVarRec, Symbol initialRec, Symbol forRec) {
-		forRec.label1 = this.generateLabel();
-		forRec.label2 = this.generateLabel();
+		forRec.label1 = LabelGenerator.getLabelGenerator().generateLabel();
+		forRec.label2 = LabelGenerator.getLabelGenerator().generateLabel();
 		this.genAssignStmt(ctrlVarRec, initialRec);
 		output.append(forRec.label1 + ":\n");
 	}
@@ -488,7 +483,7 @@ public class SemanticAnalyzer {
 	 * @param progRec
 	 */
 	public void genBranchMain(Symbol progRec) {
-		progRec.label1 = this.generateLabel();
+		progRec.label1 = LabelGenerator.getLabelGenerator().generateLabel();
 		output.append("br " + progRec.label1 + "\n");
 	}
 	
@@ -551,7 +546,7 @@ public class SemanticAnalyzer {
 	 */
 	public void genBeginFuncOrProcDeclaration(Symbol funcProcRec) {
 		if(funcProcRec.kind != Symbol.Kind.MAIN)
-			funcProcRec.label1 = this.generateLabel();	// main's label is already generated
+			funcProcRec.label1 = LabelGenerator.getLabelGenerator().generateLabel();	// main's label is already generated
 		output.append(funcProcRec.label1 + ": ; " + funcProcRec.lexeme + "\n");	// drop label
 		if(funcProcRec.kind == Symbol.Kind.MAIN)
 			output.append("add SP #" + Symbol.Type.INTEGER.size + " SP\n");	// leave space for display register for main
