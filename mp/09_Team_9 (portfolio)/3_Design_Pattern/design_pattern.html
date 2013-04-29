@@ -76,12 +76,9 @@ Compilers 2013
 Identify one design pattern that was used in your capstone project and describe exactly where in the code it is located. Highlight the design pattern in yellow. Explain why you used the pattern and didn’t just code directly
 -->
 
-<h2>Design Patterns in the Compilers Course</h2>
-<p>The components of the compiler&#8212;the scanner, parser, symbol table, and semantic analyzer&#8212;were each by way of a specific pattern that students were asked to follow. In some cases, students were allowed to deviate from the patterns. As a result, some students may have chosen a different formal design pattern for portions of the compiler. If so, they appear below.</p>
 <h2>Specific Design Patterns</h2>
-<p>Note: if you used a formal design pattern in any of your code, give the design pattern here and refer by line numbers to the code the Program section where the design pattern is implemented. If not, just put:</p>
-<p>In either case, replace the text in this section with yours.</p>
-<p>None beyond those given in the course.</p>
+<p>We decided to implement the Singleton pattern as a means of protecting the label generator. This ensures that the LabelGenerator class is the only one who gets to generate labels, and that there can be only one instance of LabelGenerator. Doing this prevents any problems with duplicate labels or anything of the sort.</p>
+<p>This pattern can be found within the LabelGenerator class itself, which is used by the SymbolTable class.</p>
 <!-- InstanceEndEditable -->
 
 </article>
