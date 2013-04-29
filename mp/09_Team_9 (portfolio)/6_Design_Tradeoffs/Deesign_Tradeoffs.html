@@ -72,17 +72,16 @@ Compilers 2013
 <article id="mainContent">
 <!-- InstanceBeginEditable name="Main" -->
 <h1>Design Tradeoffs</h1>
-(Describe a design trade-off decision (e.g. execution time vs. space requirements or compile time) in your capstone project and justify the design decisions that you made.)
 
+<!--
 <h2>Scanner Design Tradeoffs</h2>
-
 <h3>Resolution of Keywords</h3>
-(Replace this comment with a description of the method you implemented for distinguishing keywords from other identifiers, including the method and the time complexity of the method for resolving keywords.)
+(Replace this comment with a description of the method you implemented for distinguishing keywords from other identifiers, including the method and the time complexity of the method for resolving keywords.)-->
 
-<h3>Symbol Table Design</h3>
-Replace this comment with your rationale your design of the symbol table and the time complexities of the various operations on the table based on table size.
+<h2>Symbol Table Design</h2>
+<p>Our symbol table is implemented as a linked list of hashmaps where a symbol table at a given nesting level is represented as a hash map that uses a linked list to link to the next and previous symbol tables. This implementation is beneficial because of the constant-time performance provided by a hash map for insertion and deletion of records in any given symbol table. Since this is a linked list of hash maps the worst-case time it takes to look up a variable in the symbol tables is O(N) where N is the number of symbol tables. The fast operations and ease of implementation provided by these tools is the reason we chose them.</p> 
+<p>The only potential downside of this is that since this is a compiler we are writing, we cannot predict the initial capacity our hash map should have since our input could potentially be arbitrarily large. This means some rehashing may be necessary given a large program. However, for the purposes of this class the programs we are compiling are not large enough to matter, and performance constraints such as these have so far proven to be a non-issue.</p>
 
-<h3>. . . </h3>
 <!-- InstanceEndEditable -->
 
 </article>
