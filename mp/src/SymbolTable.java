@@ -43,6 +43,7 @@ public class SymbolTable {
 			if (s != null)
 				return s;
 		}
+		System.err.println("Symbol '" + name + "' was attempted to be used, but has not been defined yet.");
 		return null;
 	}
 	

@@ -6,7 +6,7 @@ y,z: boolean;
 
 procedure testProcedure(arg1:integer ; arg2:float);
 begin
-	testFunction;
+	a := arg1;
 end;
 
 function testFunction:integer;
@@ -18,12 +18,11 @@ begin
 end;
 
 begin
-	someFunction;
     a := b;
     c := testFunction;
 	while a <> 5 do
 	begin
 		testProcedure(b, x);
-        testFunction
+        c := testFunction
 	end
 end.
