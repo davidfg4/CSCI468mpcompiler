@@ -19,7 +19,12 @@ public class SemanticAnalyzer {
 	public void writeMachineCodeToFile(String filename) {
 		if(error) 
 			output = new StringBuilder();
-		filename = filename.split("\\.")[0] + ".s";
+		int end = 0;
+		if (filename.indexOf(".") == -1)
+			end = filename.length();
+		while (filename.indexOf(".",end) >= 0)
+			end = filename.indexOf(".",end) + 1;
+		filename = filename.substring(0, end - 1) + ".s";
 		File outputFile = new File(filename);
 		PrintWriter writer = null;
 		try {
