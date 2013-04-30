@@ -85,12 +85,14 @@ import java.util.LinkedList;
 import java.util.NoSuchElementException;
 
 public class SymbolTable {
-	private LinkedList<SubSymbolTable<String,Symbol>> symbolTables;
+	private LinkedList<SubSymbolTable<String,Symbol>> symbolTables;  //a linked list of all symbol tables
 	
+	//initializes the linked list of symbol tables
 	SymbolTable() {
 		symbolTables = new LinkedList<SubSymbolTable<String,Symbol>>();
 	}
 	
+	//method inserts a symbol into the table, or throws an exception if the symbol is already in the table
 	public void insertSymbol(Symbol s) throws SymbolAlreadyExistsException {
 		try {
 			if (symbolTables.getFirst().get(s.lexeme) != null) {
@@ -103,6 +105,7 @@ public class SymbolTable {
 		}
 	}
 	
+	//method finds the symbol with the specified name and returns it
 	public Symbol findSymbol(String name) {
 		for (SubSymbolTable<String,Symbol> st : symbolTables) {
 			Symbol s = st.get(name);
@@ -112,10 +115,12 @@ public class SymbolTable {
 		return null;
 	}
 	
+	//method creates and initializes a new symbol table
 	public void createSymbolTable(String name) {
 		symbolTables.add(0, new SubSymbolTable<String,Symbol>(name));
 	}
 	
+	//method deletes a symbol table
 	public void deleteSymbolTable() {
 		try {
 			symbolTables.remove();
@@ -125,6 +130,7 @@ public class SymbolTable {
 		}
 	}
 	
+	//converts a symbol s to string and returns it
 	public String toString() {
 		String s = ""; // Note: s it built in reverse order.
 		if (symbolTables.size() == 0) {
