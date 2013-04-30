@@ -82,13 +82,14 @@ Click <a href="../../../01_Introduction/2_Project_Specifications/2_Parser.html">
 <pre class="prettyprint" ><code class="language-java">
 public class MPparser {
 
-	private Token lookahead;
-	private Token secondLookahead;
-	private MPscanner scanner;
-	private SymbolTable symbolTable;
+	private Token lookahead;         //stores the lookahead token
+	private Token secondLookahead;   //stores a second lookahead token
+	private MPscanner scanner;       //variable stores an instance of scanner
+	private SymbolTable symbolTable; //stres the symbol table
 	
 	//TODO: add rule numbers to each case comment
 
+        //method parses the file
 	public MPparser(String filename) {
 		scanner = new MPscanner();
 		symbolTable = new SymbolTable();
@@ -100,7 +101,8 @@ public class MPparser {
 		System.out.println("Successfully parsed! No scanner or parser errors found.");
 		//System.out.println(symbolTable);
 	}
-
+        
+        //main method, the file is an input argument
 	public static void main(String args[]) {
 		if (args.length < 1) {
 			System.out.println("This program requires one argument, the file to be scanned.");
@@ -110,6 +112,8 @@ public class MPparser {
 		}
 	}
 
+        //method checks the current token against the lookahead token
+        //if there is a match lookahead is set to the value of second lookahead, and second lookahead is set to null
 	private void match(Token.TokenName token) {
 		if (lookahead.getToken() != token)
 			syntaxError(Token.getReverseReservedWord(token));
@@ -122,6 +126,7 @@ public class MPparser {
 		}
 	}
 
+        //returns the value of the second lookahead token
 	private Token getSecondLookahead()
 	{
 		if (secondLookahead != null)
@@ -131,6 +136,7 @@ public class MPparser {
 		return secondLookahead;
 	}
 
+        //this method checks for scanner errors and prints out an error message if any are found
 	private void checkForScannerErrors(Token t) {
 		if (t == null)
 			return;
@@ -143,6 +149,7 @@ public class MPparser {
 		}
 	}
 
+        //method outputs an error message if a syntax error is found in the file
 	private void syntaxError(String expected) {
 		System.out.println(scanner.getError(lookahead, "Syntax Error: Expected " +
 				expected + ", got '" + lookahead.getLexeme() + "' instead"));
