@@ -88,22 +88,24 @@ import java.io.PrintWriter;
 
 public class SemanticAnalyzer {
 	
-	private StringBuilder output = new StringBuilder();
-	private int labelNumber = 0;
-	private MPparser parser;
-	private SymbolTable symbolTable;
+	private StringBuilder output = new StringBuilder();  
+	private int labelNumber = 0;                         
+	private MPparser parser;                             
+	private SymbolTable symbolTable;                     
 	private boolean error = false;
 	
+	//method initializes the parser and the symbol table
 	public SemanticAnalyzer(MPparser parser, SymbolTable table) {
 		this.parser = parser;
 		this.symbolTable = table;
 	}
 	
-	
+	//method generates a unique label
 	public String generateLabel() {
 		return "L" + labelNumber++;
 	}
 	
+	//method writes the machine code output to a file specified by filename
 	public void writeMachineCodeToFile(String filename) {
 		if(error) 
 			output = new StringBuilder();
@@ -121,6 +123,7 @@ public class SemanticAnalyzer {
 			}
 	}
 	
+	//method is used for catching semantic errors
 	private void semanticError(String errorMsg) {
 		parser.semanticError(errorMsg);
 		error = true;
