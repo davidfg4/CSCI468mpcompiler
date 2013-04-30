@@ -88,23 +88,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 class MPscanner {
-	private String filename;
-	private BufferedReader reader;
-	private int lineNumber = 1;
-	private int columnNumber = 1;
-	private int tokenStartLine;
-	private int tokenStartColumn;
-	private List<String> lines = new ArrayList<String>();
-	private StringBuilder lexeme = new StringBuilder();
-	private String markedLexeme = "";
-	private int markedLine, markedColumn;
-	private Token token;
-	private boolean fileComplete = false;
+	private String filename;        //name of micro pascal file to compile  
+	private BufferedReader reader;  //instance of buffered reader used to read file
+	private int lineNumber = 1;     //variable which keeps track of the current line number initialized to 1
+	private int columnNumber = 1;   //column number variable used with the lexeme
+	private int tokenStartLine;     //used to store the start line of a given token - values is taken from current value of lineNumber when token is encountered
+	private int tokenStartColumn;   //used to store the start column of a given token - value is taken from current value of columnNumber when token is encountered
+	private List<String> lines = new ArrayList<String>();  //linked list of line used when reading the file and determining EOF
+	private StringBuilder lexeme = new StringBuilder();    //used for storing a token's lexeme
+	private String markedLexeme = "";                      //used to specify a lexeme in marking the buffer
+	private int markedLine, markedColumn;                  //used to specify a line and column when marking the buffer
+	private Token token;                                   //used to refer to an instance of token
+	private boolean fileComplete = false;                  //used to determine when we have completed scanning the file
 	
 	MPscanner() {
 		
 	}
-
+        
+        //method used to open a File, with the specified filename using a buffered reader
+        //the methid also records the number of lines in the file
 	public boolean openFile(String filename) {
 		this.filename = filename;
 		// read in all the lines so we know them beforehand for error reporting
@@ -128,6 +130,7 @@ class MPscanner {
 		return true;
 	}
 	
+	//file reader used in openFile() to read in the specified file
 	public FileReader openFileReader(String filename) {
 		FileReader fr = null;
 		try {
@@ -139,6 +142,8 @@ class MPscanner {
 		return fr;
 	}
 	
+	//method used to get token data
+	//determines a token's start line, start column, lexeme, and tokenName
 	public Token getToken() {
 		lexeme = new StringBuilder();
 		tokenStartLine = lineNumber;
@@ -227,7 +232,8 @@ class MPscanner {
 		else
 			return returnToken(Token.TokenName.MP_ERROR);
 	}
-
+        
+        //method skips over comments in the file
 	private Token ignoreComment() {
 		markBuffer();
 		char ch = getNextChar();
@@ -245,6 +251,7 @@ class MPscanner {
 		return getToken();	// ignore comment
 	}
 	
+	//method called in getToken if the token is an MP_IDENTIFIER
 	private Token findIdentifier() {
 		markBuffer();
 		char ch = getNextChar();
@@ -263,6 +270,7 @@ class MPscanner {
 			return returnToken(Token.TokenName.MP_IDENTIFIER);
 	}
 	
+	//method called in getToken() if the token is a MP_INTEGER_LIT
 	private Token findInteger() {
 		markBuffer();
 		char ch = getNextChar();
@@ -292,6 +300,7 @@ class MPscanner {
 		}
 	}
 	
+	//method called in getToken if the token is an MP_FIXED_LIT
 	private Token findFixed() {
 		markBuffer();
 		char ch = getNextChar();
@@ -312,6 +321,7 @@ class MPscanner {
 		}
 	}
 	
+	//method called in getToken if the token is an MP_FLOAT_LIT
 	private Token findFloat() {
 		markBuffer();
 		char ch = getNextChar();
@@ -323,6 +333,7 @@ class MPscanner {
 		}
 	}
 	
+	//method called in getToken if the token is an MP_STRING_LIT
 	private Token findString() {
 		char ch = getNextChar();
 		if (ch == '\'') {
@@ -347,6 +358,7 @@ class MPscanner {
 		return findString();
 	}
 	
+	//method determines if the given char is a letter
 	private boolean isLetter(char c) {
 		if(c >= 'a' && c <= 'z' ||
 				c >= 'A' && c <= 'Z')
@@ -354,12 +366,14 @@ class MPscanner {
 		return false;
 	}
 	
+	//method determines if the given char is a number
 	private boolean isNumber(char c) {
 		if(c >= '0' && c <= '9')
 			return true;
 		return false;
 	}
 	
+	//method returns the next char from the file
 	private char getNextChar() {
 		char ch = ' ';
 		try {
@@ -383,6 +397,7 @@ class MPscanner {
 		return ch;
 	}
 	
+	//method marks the buffer at the current point
 	private void markBuffer() {
 		markedLexeme = lexeme.toString();
 		markedLine = lineNumber;
@@ -395,6 +410,7 @@ class MPscanner {
 		}
 	}
 	
+	//method resets the buffer
 	private void resetBuffer() {
 		lexeme = new StringBuilder(markedLexeme);
 		lineNumber = markedLine;
@@ -407,6 +423,7 @@ class MPscanner {
 		}
 	}
 	
+	//method gets info that is used in printing out error statements
 	public String getError(String filename, int line, int col, String errorName) {
 		String error = "  File \"" + filename + "\", line " + line + ":\n";
 		error += "    " + getLine(line) + "\n";
@@ -415,6 +432,7 @@ class MPscanner {
 		return error;
 	}
 	
+	//method gets the token and the error name, and then determines further info which is sent to the getError method above
 	public String getError(Token t, String errorName) {
 		return getError(filename, t.getLine(), t.getColumn(), errorName);
 	}
@@ -426,12 +444,14 @@ class MPscanner {
 			return lines.get(l);
 	}
 	
+	//method returns specified token with it's name, start line, start column, and lexeme
 	private Token returnToken(Token.TokenName tokenName) {
 		token = new Token(tokenName, tokenStartLine, tokenStartColumn,
 				lexeme.toString());
 		return token;
 	}
 	
+	//method returns the current lexeme
 	public String getLexeme() {
 		if (token == null)
 			return "";
@@ -439,6 +459,7 @@ class MPscanner {
 			return token.getLexeme();
 	}
 	
+	//method returns the current line number
 	public int getLineNumber() {
 		if (token == null)
 			return 0;
@@ -446,6 +467,7 @@ class MPscanner {
 			return token.getLine();
 	}
 	
+	//method returns the current column number
 	public int getColumnNumber() {
 		if (token == null)
 			return 0;
